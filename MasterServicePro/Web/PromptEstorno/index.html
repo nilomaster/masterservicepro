@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estorno</title>
+    <style>
+        :root {
+            --bg-body: #1a1d24;
+            --bg-card: #232732;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --success: #10b981;
+            --success-hover: #059669;
+            --border: #334155;
+            --input-bg: #0f172a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            padding: 10px;
+        }
+
+        .modal-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-card);
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            text-align: left;
+        }
+
+        .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+
+        .modal-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0;
+            color: var(--text-main);
+            letter-spacing: 0.5px;
+        }
+
+        .modal-body {
+            padding: 25px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 15px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        .modal-footer {
+            padding: 20px 25px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-cancel {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+        }
+
+        .btn-cancel:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: var(--danger-hover);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .error-msg {
+            color: var(--danger);
+            font-size: 13px;
+            margin-top: 8px;
+            display: none;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="modal-container">
+        <div class="modal-header">
+            <h2 id="lblTitle">Aguarde...</h2>
+        </div>
+        <div class="modal-body">
+            
+            <div class="form-group" id="groupDestino" style="display: none;">
+                <label class="form-label">Destino do Valor:</label>
+                <select id="selDestino" class="form-control">
+                    <option value="SALDO">Gerar Crédito (Saldo na conta do cliente)</option>
+                    <option value="SANGRIA">Devolver Dinheiro (Sangria no Caixa)</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="groupFormaPagamento" style="display: none;">
+                <label class="form-label">Forma de Pagamento (Devolução):</label>
+                <select id="selFormaPagamento" class="form-control">
+                    <option value="Dinheiro">Dinheiro</option>
+                    <option value="Pix">Pix</option>
+                    <option value="Cartão de Crédito">Cartão de Crédito</option>
+                    <option value="Cartão de Débito">Cartão de Débito</option>
+                    <option value="Transferência">Transferência</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" id="lblInputTitle">Motivo do Estorno:</label>
+                <input type="text" id="txtInput" class="form-control" autocomplete="off">
+                <div id="errorMsg" class="error-msg">Por favor, preencha este campo.</div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="btnCancel" class="btn btn-cancel">CANCELAR</button>
+            <button id="btnConfirm" class="btn btn-danger">ESTORNAR</button>
+        </div>
+    </div>
+
+    <script>
+        window.chrome.webview.addEventListener('message', event => {
+            const data = event.data;
+            if (data.action === "LOAD_DATA") {
+                document.getElementById('lblTitle').innerText = data.title;
+                document.getElementById('txtInput').placeholder = data.placeholder;
+                
+                if (data.showDestino) {
+                    document.getElementById('selDestino').innerHTML = `
+                        <option value="ERRO_LANCAMENTO">Apenas Cancelar (Erro de Lançamento / Não tirar dinheiro)</option>
+                        <option value="SALDO">Gerar Crédito (Saldo na conta do cliente)</option>
+                        <option value="SANGRIA">Devolver Dinheiro (Saída do Caixa)</option>
+                    `;
+                } else {
+                    document.getElementById('selDestino').innerHTML = `
+                        <option value="ERRO_LANCAMENTO">Apenas Cancelar (Erro de Lançamento / Não tirar dinheiro)</option>
+                        <option value="SANGRIA">Devolver Dinheiro (Saída do Caixa)</option>
+                    `;
+                }
+                document.getElementById('groupDestino').style.display = 'block';
+                
+                toggleFormaPagamento();
+                
+                document.getElementById('txtInput').focus();
+            }
+        });
+
+        document.getElementById('selDestino').addEventListener('change', toggleFormaPagamento);
+
+        function toggleFormaPagamento() {
+            const selDestino = document.getElementById('selDestino');
+            const groupFormaPagamento = document.getElementById('groupFormaPagamento');
+            if (selDestino.value === 'SANGRIA') {
+                groupFormaPagamento.style.display = 'block';
+            } else {
+                groupFormaPagamento.style.display = 'none';
+            }
+        }
+
+        document.getElementById('btnCancel').addEventListener('click', () => {
+            window.chrome.webview.postMessage({ action: "CANCEL" });
+        });
+
+        document.getElementById('btnConfirm').addEventListener('click', () => {
+            confirm();
+        });
+
+        document.getElementById('txtInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                confirm();
+            }
+        });
+
+        function confirm() {
+            const input = document.getElementById('txtInput');
+            const val = input.value.trim();
+            const errorMsg = document.getElementById('errorMsg');
+            const selDestino = document.getElementById('selDestino');
+            const selFormaPagamento = document.getElementById('selFormaPagamento');
+            
+            if (!val) {
+                errorMsg.style.display = 'block';
+                input.style.borderColor = 'var(--danger)';
+                input.focus();
+                return;
+            }
+            
+            errorMsg.style.display = 'none';
+            input.style.borderColor = 'var(--border)';
+            
+            window.chrome.webview.postMessage({
+                action: "CONFIRMAR",
+                value: val,
+                destino: selDestino.value,
+                formaPagamento: (selDestino.value === 'SANGRIA') ? selFormaPagamento.value : ''
+            });
+        }
+    </script>
+</body>
+</html>
