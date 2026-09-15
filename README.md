@@ -1,4 +1,4 @@
-﻿# MasterServicePro - Atualizações
+# MasterServicePro - Atualizações
 
 ## Correção: Lançamento de Troco no Caixa de OS
 
@@ -10,4 +10,34 @@
 - **Resolução**: 
   - A lógica de dupla dedução foi corrigida.
   - Pagamentos na opção *Dinheiro*: Registram exatamente o os.ValorTotal recebido, sem lançar uma Saída para o troco, garantindo que apenas a entrada líquida exata da OS conte na gaveta.
-  - Pagamentos na opção *Misto*: O valor rm.Troco é abatido diretamente de rm.MistoDinheiro no momento do lançamento, garantindo que não aconteça o registro da saída indevida. O saldo registrará corretamente a entrada do dinheiro líquido recebido para cobrir o serviço, mantendo a contabilidade limpa de "Retiradas".
+  - Pagamentos na opção *Misto*: O valor `frm.Troco` é abatido diretamente de `frm.MistoDinheiro` no momento do lançamento, garantindo que não aconteça o registro da saída indevida. O saldo registrará corretamente a entrada do dinheiro líquido recebido para cobrir o serviço, mantendo a contabilidade limpa de "Retiradas".
+
+## Nova Feature: Escolha da Forma de Pagamento no Estorno
+
+- **Data**: 15/09/2026
+- **Arquivos Modificados**: 
+  - MasterServicePro/Web/PromptEstorno/index.html
+  - MasterServicePro/Forms/FrmPromptMotivoEstorno.cs
+  - MasterServicePro/Forms/FrmRelatorios.cs
+  - MasterServicePro/Forms/FrmCorrecoesAdminWeb.cs
+  - MasterServicePro/DAL/VendaRepository.cs
+- **Motivo**: 
+  Quando o cliente realizava o estorno de uma venda/OS paga via Pix ou Cartão, o sistema deduzia o estorno diretamente como "Dinheiro" do caixa físico, não permitindo registrar a devolução na conta de onde ele de fato foi retirado (Ex: estorno do Pix da empresa).
+- **Resolução**: 
+  - Foi adicionado um dropdown Forma de Pagamento (Devolução) na tela de motivo de estorno, que aparece quando a opção selecionada é "Devolver Dinheiro (Saída do Caixa)".
+  - Ao confirmar, o front-end envia a escolha do pagamento ao C#.
+  - O VendaRepository foi atualizado para registrar a movimentação de Saída com a exata FormaPagamento escolhida pelo usuário.
+
+## Nova Feature: Filtro de Marca na C�pia de WhatsApp
+
+- **Data**: 15/09/2026
+- **Arquivos Modificados**: 
+  - MasterServicePro/Web/ListaPrecos/index.html
+  - MasterServicePro/Forms/FrmListaPrecosWeb.cs
+- **Motivo**: 
+  A fun��o de copiar a tabela de pre�os gerava listas muito extensas ao copiar todos os itens de uma categoria (ex: Telas). Foi solicitada a separa��o por Marca/Modelo para envio de listas mais espec�ficas para o cliente ou para a equipe.
+- **Resolu��o**: 
+  - Adicionado um segundo Dropdown (Filtro) para 'Marca' no modal (index.html).
+  - Atualizada a formata��o para incluir (Modelo) (Marca) na c�pia da lista.
+  - C# filtrando corretamente itens e aplicando o modelo/marca no texto.
+
