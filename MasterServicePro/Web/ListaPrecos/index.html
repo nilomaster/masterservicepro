@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Preços</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --bg-app: #1A1D24;
+            --bg-card: #222630;
+            --bg-card-hover: #2A2F3B;
+            --bg-sidebar: #1E2129;
+            --element-border: #333845;
+            --primary: #6366F1;
+            --primary-hover: #4F46E5;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --whatsapp: #25D366;
+            --whatsapp-hover: #128C7E;
+            --text-title: #F8FAFC;
+            --text-body: #CBD5E1;
+            --text-muted: #94A3B8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-app); color: var(--text-body); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+        /* HEADER */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 24px 32px; background-color: var(--bg-card); border-bottom: 1px solid var(--element-border); }
+        .title-area h1 { color: var(--text-title); font-size: 24px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .title-area h1 i { color: var(--primary); }
+        .title-area p { color: var(--text-muted); font-size: 14px; margin-top: 4px; }
+        .header-actions { display: flex; gap: 12px; }
+
+        .btn { padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .btn-whatsapp { background-color: var(--whatsapp); color: white; box-shadow: 0 4px 6px rgba(37, 211, 102, 0.2); }
+        .btn-whatsapp:hover { background-color: var(--whatsapp-hover); transform: translateY(-1px); }
+        .btn-secondary { background-color: var(--bg-sidebar); color: var(--text-title); border: 1px solid var(--element-border); }
+        .btn-secondary:hover { background-color: var(--bg-card-hover); }
+
+        /* TOOLBAR */
+        .toolbar { padding: 20px 32px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+        .search-box { position: relative; flex: 1; max-width: 400px; }
+        .search-box i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 18px; }
+        .search-box input { width: 100%; background-color: var(--bg-card); border: 1px solid var(--element-border); color: var(--text-title); padding: 12px 16px 12px 42px; border-radius: 8px; font-size: 14px; transition: all 0.2s; }
+        .search-box input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2); }
+
+        /* CONTENT */
+        .content { flex: 1; padding: 0 32px 32px 32px; overflow-y: auto; }
+        .table-container { background-color: var(--bg-card); border-radius: 12px; border: 1px solid var(--element-border); overflow: hidden; }
+
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background-color: var(--bg-sidebar); color: var(--text-muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; padding: 16px 20px; border-bottom: 1px solid var(--element-border); }
+        td { padding: 16px 20px; font-size: 14px; border-bottom: 1px solid var(--element-border); color: var(--text-body); }
+        tbody tr:hover { background-color: var(--bg-card-hover); }
+
+        .prod-name { color: var(--text-title); font-weight: 500; }
+        .prod-code { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+        
+        .cat-badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; background-color: rgba(99, 102, 241, 0.1); color: var(--primary); border: 1px solid rgba(99, 102, 241, 0.2); }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-app); }
+        ::-webkit-scrollbar-thumb { background: var(--element-border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+        .empty-state i { font-size: 48px; color: var(--element-border); margin-bottom: 16px; }
+
+        /* SweetAlert Dark Theme overrides */
+        .swal2-popup { background: #1e293b !important; color: #f8fafc !important; }
+        .swal2-title { color: #f8fafc !important; font-size: 1.25rem !important; }
+        .swal2-html-container { color: #94a3b8 !important; }
+        .swal-fullscreen-img { max-width: 100% !important; max-height: 85vh !important; object-fit: contain !important; margin: 0 !important; border-radius: 8px; }
+        
+        /* Mobile-style list */
+        .cat-list { max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-top: 10px; padding-right: 4px; }
+        .cat-list::-webkit-scrollbar { width: 4px; }
+        .cat-btn { padding: 12px 16px; background-color: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #f8fafc; text-align: left; cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; }
+        .cat-btn:hover { background-color: #1e293b; border-color: #4f46e5; }
+        .cat-btn.selected { background-color: rgba(99, 102, 241, 0.1); border-color: #6366f1; color: #6366f1; font-weight: 500; }
+        .cat-btn.selected::after { content: '\EB7B'; font-family: 'remixicon'; font-size: 18px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="title-area">
+            <h1><i class="ri-price-tag-3-line"></i> Lista de Preços</h1>
+            <p id="prod-count">Carregando itens disponíveis...</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-secondary" onclick="action('atualizar')">
+                <i class="ri-refresh-line"></i> Atualizar
+            </button>
+            <button class="btn btn-whatsapp" onclick="promptWhatsAppCategory()" id="btnCopiar">
+                <i class="ri-whatsapp-line"></i> Copiar Tabela p/ WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <div class="search-box">
+            <i class="ri-search-line"></i>
+            <input type="text" id="searchInput" placeholder="Buscar na lista de preços..." onkeyup="filterData()">
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Produto</th>
+                        <th>Categoria</th>
+                        <th>Marca / Modelo</th>
+                        <th>Disponível</th>
+                        <th>Valor Venda</th>
+                    </tr>
+                </thead>
+                <tbody id="produtos-tbody">
+                </tbody>
+            </table>
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <i class="ri-search-eye-line"></i>
+                <h3>Nenhum produto em estoque</h3>
+                <p>Abasteça o estoque para que os produtos apareçam na lista de preços.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let produtosData = [];
+
+        if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.addEventListener('message', event => {
+                try {
+                    const msg = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                    if (msg.action === 'load_data') {
+                        produtosData = msg.data;
+                        filterData();
+                    }
+                } catch(e) { console.error(e); }
+            });
+            window.chrome.webview.postMessage({ action: 'request_data' });
+        } else {
+            produtosData = [
+                { Id: 1, Nome: "Amortecedor Dianteiro", CodigoInterno: "AM-100", Categoria: "Peças Mecânicas", Marca: "Monroe", Modelo: "Gol G5", PrecoVenda: 250.00, Estoque: 12 },
+                { Id: 2, Nome: "Filtro de Óleo", CodigoInterno: "FO-200", Categoria: "Peças Mecânicas", Marca: "Tecfil", Modelo: "Universal", PrecoVenda: 35.00, Estoque: 3 }
+            ];
+            filterData();
+        }
+
+        function formatCurrency(val) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+        }
+
+        function filterData() {
+            const termo = document.getElementById('searchInput').value.toLowerCase();
+            let filtered = produtosData;
+            
+            if (termo) {
+                filtered = filtered.filter(p => 
+                    (p.Nome && p.Nome.toLowerCase().includes(termo)) ||
+                    (p.CodigoInterno && p.CodigoInterno.toLowerCase().includes(termo)) ||
+                    (p.Categoria && p.Categoria.toLowerCase().includes(termo))
+                );
+            }
+            renderTable(filtered);
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('produtos-tbody');
+            const emptyState = document.getElementById('empty-state');
+            const countLabel = document.getElementById('prod-count');
+            
+            tbody.innerHTML = '';
+            
+            if (!data || data.length === 0) {
+                emptyState.style.display = 'block';
+                countLabel.innerText = `Nenhum item em estoque.`;
+                document.querySelector('table').style.display = 'none';
+                return;
+            }
+
+            document.querySelector('table').style.display = 'table';
+            emptyState.style.display = 'none';
+            countLabel.innerText = `${data.length} item(s) disponíveis para venda`;
+
+            data.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.style.cursor = 'pointer';
+                tr.onclick = () => showProductDetails(p.Id);
+                tr.innerHTML = `
+                    <td>
+                        <div class="prod-name">${p.Nome}</div>
+                        <div class="prod-code"><i class="ri-barcode-box-line"></i> ${p.CodigoInterno || 'S/ Código'}</div>
+                    </td>
+                    <td>
+                        <span class="cat-badge">${p.Categoria}</span>
+                    </td>
+                    <td>
+                        <div style="font-weight: 500;">${p.Marca || '-'}</div>
+                        <div style="color: var(--text-muted); font-size: 12px;">${p.Modelo || '-'}</div>
+                    </td>
+                    <td style="color: var(--text-muted); font-weight: 500;">
+                        ${p.Estoque} un
+                    </td>
+                    <td style="font-weight: 600; color: var(--success); font-size: 16px;">${formatCurrency(p.PrecoVenda)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function showProductDetails(id) {
+            const p = produtosData.find(x => x.Id === id);
+            if (!p) return;
+
+            const imageUrl = p.ImagemUrl ? p.ImagemUrl : 'https://placehold.co/400x300/1a1d24/94a3b8?text=Sem+Imagem';
+
+            Swal.fire({
+                title: 'Detalhes do Produto',
+                background: '#222630',
+                color: '#f8fafc',
+                confirmButtonColor: '#6366f1',
+                html: `
+                    <div style="text-align: left; margin-top: 10px;">
+                        <div style="position: relative; width: 100%; height: 200px; border-radius: 8px; overflow: hidden; background: #1a1d24; border: 1px solid #333845; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                            <img src="${imageUrl}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                            ${p.ImagemUrl ? `<button onclick="verImagemFullscreen('${imageUrl}')" style="position: absolute; bottom: 8px; right: 8px; background: rgba(34,38,48,0.8); color: #f8fafc; border: 1px solid #333845; padding: 6px 12px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 12px; transition: 0.2s; backdrop-filter: blur(4px);"><i class="ri-zoom-in-line"></i> Ampliar</button>` : ''}
+                        </div>
+                        <h3 style="color: #f8fafc; margin-bottom: 8px; font-weight: 600;">${p.Nome}</h3>
+                        <p style="color: #94a3b8; font-size: 14px; margin-bottom: 4px;"><strong>Código:</strong> <span style="color: #cbd5e1;">${p.CodigoInterno || 'N/A'}</span></p>
+                        <p style="color: #94a3b8; font-size: 14px; margin-bottom: 4px;"><strong>Categoria:</strong> <span style="color: #cbd5e1;">${p.Categoria}</span></p>
+                        <p style="color: #94a3b8; font-size: 14px; margin-bottom: 4px;"><strong>Marca / Modelo:</strong> <span style="color: #cbd5e1;">${p.Marca || '-'} / ${p.Modelo || '-'}</span></p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid #333845;">
+                            <div>
+                                <span style="display: block; font-size: 12px; color: #94a3b8; text-transform: uppercase;">Estoque</span>
+                                <span style="font-weight: 600; color: #f8fafc; font-size: 16px;">${p.Estoque} un</span>
+                            </div>
+                            <div style="text-align: right;">
+                                <span style="display: block; font-size: 12px; color: #94a3b8; text-transform: uppercase;">Valor de Venda</span>
+                                <span style="font-weight: 700; color: #10b981; font-size: 20px;">${formatCurrency(p.PrecoVenda)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                confirmButtonText: 'Fechar'
+            });
+        }
+
+        function verImagemFullscreen(url) {
+            Swal.fire({
+                imageUrl: url,
+                imageAlt: 'Imagem do Produto',
+                showCloseButton: true,
+                showConfirmButton: false,
+                width: 'auto',
+                background: 'transparent',
+                backdrop: 'rgba(15, 23, 42, 0.95)',
+                customClass: {
+                    image: 'swal-fullscreen-img'
+                }
+            });
+        }
+
+        function action(type, extra = {}) {
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage({ action: type, ...extra });
+            } else {
+                console.log(`Ação: ${type}`, extra);
+            }
+        }
+
+        function promptWhatsAppCategory() {
+            if (!produtosData || produtosData.length === 0) {
+                Swal.fire('Aviso', 'Não há produtos em estoque para gerar a tabela.', 'warning');
+                return;
+            }
+
+            // Extract unique categories
+            const categoriesSet = new Set();
+            const marcasSet = new Set();
+            
+            produtosData.forEach(p => {
+                if (p.Categoria) categoriesSet.add(p.Categoria);
+                if (p.Marca) marcasSet.add(p.Marca);
+            });
+            const categories = Array.from(categoriesSet).sort();
+            const marcas = Array.from(marcasSet).sort();
+
+            let catOptions = '<option value="Todas">Todas as Categorias</option>';
+            categories.forEach(c => {
+                catOptions += `<option value="${c}">${c}</option>`;
+            });
+
+            let marcaOptions = '<option value="Todas">Todas as Marcas</option>';
+            marcas.forEach(m => {
+                marcaOptions += `<option value="${m}">${m}</option>`;
+            });
+
+            Swal.fire({
+                title: 'Copiar para WhatsApp',
+                html: `
+                    <div style="text-align: left; margin-top: 10px;">
+                        <label style="display: block; font-size: 14px; margin-bottom: 8px; color: #94a3b8;">Selecione a Categoria</label>
+                        <select id="swal-cat" style="width: 100%; padding: 12px; background-color: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #f8fafc; margin-bottom: 16px; outline: none; font-family: 'Inter', sans-serif;">
+                            ${catOptions}
+                        </select>
+
+                        <label style="display: block; font-size: 14px; margin-bottom: 8px; color: #94a3b8;">Selecione a Marca (Opcional)</label>
+                        <select id="swal-marca" style="width: 100%; padding: 12px; background-color: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #f8fafc; margin-bottom: 8px; outline: none; font-family: 'Inter', sans-serif;">
+                            ${marcaOptions}
+                        </select>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: '<i class="ri-clipboard-line"></i> Copiar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#25D366',
+                cancelButtonColor: '#334155',
+                preConfirm: () => {
+                    return {
+                        categoria: document.getElementById('swal-cat').value,
+                        marca: document.getElementById('swal-marca').value
+                    };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    action('copiar_whatsapp', { categoria: result.value.categoria, marca: result.value.marca });
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+

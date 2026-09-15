@@ -27,3 +27,17 @@
   - Foi adicionado um dropdown Forma de Pagamento (DevoluÃ§Ã£o) na tela de motivo de estorno, que aparece quando a opÃ§Ã£o selecionada Ã© "Devolver Dinheiro (SaÃ­da do Caixa)".
   - Ao confirmar, o front-end envia a escolha do pagamento ao C#.
   - O VendaRepository foi atualizado para registrar a movimentaÃ§Ã£o de SaÃ­da com a exata FormaPagamento escolhida pelo usuÃ¡rio.
+
+## Nova Feature: Filtro de Marca na Cópia de WhatsApp
+
+- **Data**: 15/09/2026
+- **Arquivos Modificados**: 
+  - MasterServicePro/Web/ListaPrecos/index.html
+  - MasterServicePro/Forms/FrmListaPrecosWeb.cs
+- **Motivo**: 
+  A função de copiar a tabela de preços gerava listas muito extensas ao copiar todos os itens de uma categoria (ex: Telas). Foi solicitada a separação por Marca/Modelo para envio de listas mais específicas para o cliente ou para a equipe.
+- **Resolução**: 
+  - Adicionado um segundo Dropdown (Filtro) para 'Marca' no modal (index.html).
+  - Atualizada a formatação para incluir (Modelo) (Marca) na cópia da lista.
+  - C# filtrando corretamente itens e aplicando o modelo/marca no texto.
+
