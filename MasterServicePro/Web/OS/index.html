@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Ordens de Serviço</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="os-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Ordens de Serviço (O.S.)</h1>
+            <div class="header-actions">
+                <button class="btn-neon" onclick="sendAction('NOVA_OS', 0)">➕ Nova O.S.</button>
+                <button class="btn-outline" id="btnToggleView" onclick="toggleView()">📋 Modo Kanban</button>
+            </div>
+        </div>
+
+        <!-- Filters & Search -->
+        <div class="glass-card tools-bar">
+            <div class="filters-group" id="filterOptions">
+                <button class="filter-btn active" data-filter="Todas">Todas</button>
+                <button class="filter-btn" data-filter="Pendente">Em Aberto</button>
+                <button class="filter-btn" data-filter="Finalizado">Prontas</button>
+                <button class="filter-btn" data-filter="Cancelado">Canceladas</button>
+            </div>
+            <div class="search-box" style="display: flex; gap: 10px; align-items: center;">
+                <input type="date" id="dtInicio" class="custom-input" style="width:130px; font-size: 14px; padding: 5px; height: 35px;" onchange="requestData()">
+                <span style="color:var(--text-secondary)">até</span>
+                <input type="date" id="dtFim" class="custom-input" style="width:130px; font-size: 14px; padding: 5px; height: 35px;" onchange="requestData()">
+                <div style="width: 1px; height: 20px; background-color: var(--border); margin: 0 10px;"></div>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 5px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="searchInput" placeholder="Buscar por Cliente, Marca ou Modelo..." onkeyup="handleSearchInput(event)" style="flex:1;">
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Table View -->
+            <div id="tableView" class="view-container active">
+                <div class="table-wrapper glass-card">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Aparelho</th>
+                                <th>Defeito</th>
+                                <th>Val. Cobrado</th>
+                                <th>Val. Lucro</th>
+                                <th>Data Criação</th>
+                                <th>Data Entrega</th>
+                                <th>Status</th>
+                                <th style="text-align: right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="osTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Kanban View -->
+            <div id="kanbanView" class="view-container">
+                <div class="kanban-board">
+                    <div class="kanban-column" id="col-Aberto">
+                        <div class="kanban-header warning">EM ABERTO</div>
+                        <div class="kanban-cards"></div>
+                    </div>
+                    <div class="kanban-column" id="col-Em Andamento">
+                        <div class="kanban-header primary">EM ANDAMENTO</div>
+                        <div class="kanban-cards"></div>
+                    </div>
+                    <div class="kanban-column" id="col-Finalizado">
+                        <div class="kanban-header success">FINALIZADO</div>
+                        <div class="kanban-cards"></div>
+                    </div>
+                    <div class="kanban-column" id="col-Cancelado">
+                        <div class="kanban-header danger">CANCELADO</div>
+                        <div class="kanban-cards"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div id="contextMenu" class="context-menu">
+        <button class="ctx-item" onclick="handleContextAction('EDITAR_OS')">✏️ Editar O.S.</button>
+        <button class="ctx-item" onclick="handleContextAction('IMPRIMIR_OS')">🖨️ Imprimir O.S.</button>
+        <button class="ctx-item" onclick="handleContextAction('IMPRIMIR_RECIBO')">📄 Imprimir Recibo</button>
+        <button class="ctx-item" onclick="handleContextAction('IMPRIMIR_ETIQUETA')">🏷️ Imprimir Etiqueta</button>
+        <div class="ctx-divider"></div>
+        <div class="ctx-submenu">
+            <span class="ctx-item">Mover para...</span>
+            <div class="ctx-submenu-content">
+                <button class="ctx-item" onclick="handleContextAction('MOVER_ABERTO')">Em Aberto</button>
+                <button class="ctx-item" onclick="handleContextAction('MOVER_ANDAMENTO')">Em Andamento</button>
+                <button class="ctx-item" onclick="handleContextAction('MOVER_FINALIZADO')">Finalizado</button>
+                <button class="ctx-item text-danger" onclick="handleContextAction('MOVER_CANCELADO')">Cancelado</button>
+            </div>
+        </div>
+        <div class="ctx-divider"></div>
+        <button class="ctx-item text-danger" onclick="handleContextAction('EXCLUIR_OS')">❌ Cancelar / Excluir</button>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+

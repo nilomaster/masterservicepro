@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS Neon</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts for modern typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+</head>
+<body>
+    <div class="pos-container">
+        <!-- Header -->
+        <header class="header">
+            <h1>POS</h1>
+        </header>
+
+        <div class="main-content">
+            <!-- Left Panel (Summary & Payment) -->
+            <div class="left-panel">
+                
+                <!-- Total Box -->
+                <div class="glass-card total-card">
+                    <p class="label">TOTAL A PAGAR:</p>
+                    <h2 class="total-value" id="totalAValue">R$ 0,00</h2>
+                </div>
+
+                <!-- Client Box -->
+                <div class="glass-card client-card">
+                    <p class="label">CLIENTE:</p>
+                    <div class="client-info">
+                        <h3 id="clientName">NENHUM CLIENTE</h3>
+                        <svg class="user-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="cursor: pointer;" onclick="sendAction('REMOVER_CLIENTE')" title="Vender para Consumidor Final">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </div>
+                    <div class="balance-badge">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                            <line x1="2" y1="10" x2="22" y2="10"></line>
+                        </svg>
+                        <span>Saldo Disponível<br><b>R$ 0,00</b></span>
+                    </div>
+                    <button class="btn-outline btn-full mt-15" onclick="openModal('modal-busca-cliente')">VINCULAR CLIENTE (CPF/CNPJ)</button>
+                </div>
+
+                <!-- Payment Selection Box -->
+                <div class="glass-card payment-card">
+                    <select class="custom-select" id="paymentMethod" onchange="syncPaymentMethod()">
+                        <option>Seleção do pagamento</option>
+                        <option value="dinheiro">Dinheiro</option>
+                        <option value="cartao_credito">Cartão de Crédito</option>
+                        <option value="cartao_debito">Cartão de Débito</option>
+                        <option value="pix">PIX</option>
+                        <option value="misto">Misto</option>
+                        <option value="A Prazo (Fiado)">A Prazo (Fiado)</option>
+                    </select>
+                </div>
+
+                <!-- Footer Summary -->
+                <div class="footer-summary">
+                    <div class="summary-item">
+                        <p class="label">RESTANTE:</p>
+                        <h3 class="value warning">R$ 0,00</h3>
+                    </div>
+                    <div class="summary-item">
+                        <p class="label">TROCO:</p>
+                        <h3 class="value success">R$ 0,00</h3>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Center Panel (Search Results) -->
+            <div class="center-panel glass-card list-card">
+                <div style="margin-bottom: 15px;">
+                    <p class="label">PESQUISAR PRODUTO (NOME / CÓDIGO)</p>
+                    <input type="text" class="custom-input" style="width: 100%; font-size: 16px; padding: 15px;" placeholder="Digite aqui..." id="searchInput" onkeyup="handleSearchInput(event)">
+                </div>
+                
+                <div class="table-container">
+                    <table class="items-table table-hoverable">
+                        <thead>
+                            <tr>
+                                <th>Produto</th>
+                                <th>Preço</th>
+                                <th>Est.</th>
+                            </tr>
+                        </thead>
+                        <tbody id="searchResultsList">
+                            <tr><td colspan="3" style="text-align: center; color: var(--text-secondary);">Digite algo para buscar...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Right Panel (Items List) -->
+            <div class="right-panel glass-card list-card">
+                <p class="label" style="margin-bottom: 15px;">CARRINHO DE COMPRAS</p>
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Quantidade</th>
+                            <th>Preço</th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemsList">
+                        <!-- Lista vazia inicial -->
+                    </tbody>
+                </table>
+                
+                <!-- Bottom Actions Panel -->
+                <div class="actions-panel">
+                    <div class="top-actions">
+                        <button class="btn-outline" onclick="openModal('modal-desconto')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                                <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                            </svg>
+                            APLICAR DESCONTO
+                        </button>
+                        <div class="shortcuts-info">
+                            <p>ATALHOS DO SISTEMA</p>
+                            <span>[F2] Buscar • [F5] Finalizar</span><br>
+                            <span>[DEL] Remover • [ESC] Cancelar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="main-action-buttons">
+                        <button id="btnRemoverItem" class="btn-action btn-dark" onclick="sendAction('REMOVER_ITEM')">REMOVER ITEM (DEL)</button>
+                        <button id="btnCancelarVenda" class="btn-action btn-danger" onclick="sendAction('CANCELAR_VENDA')">CANCELAR VENDA</button>
+                        <button id="btnFinalizarVenda" class="btn-action btn-primary" onclick="openModal('modal-finalizar')">FINALIZAR VENDA (F5)</button>
+                    </div>
+                    
+                    <div class="fiscal-action-buttons" style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button id="btnEmitirNFe" class="btn-action" style="flex: 1; background-color: var(--accent-blue); color: white; border: none; opacity: 0.6; cursor: not-allowed; font-weight: bold; border-radius: 8px; font-size: 14px;" disabled title="Em breve: Integração Fiscal em Desenvolvimento">EMITIR NFe</button>
+                        <button id="btnEmitirNFCe" class="btn-action" style="flex: 1; background-color: var(--success-green); color: white; border: none; opacity: 0.6; cursor: not-allowed; font-weight: bold; border-radius: 8px; font-size: 14px;" disabled title="Em breve: Integração Fiscal em Desenvolvimento">EMITIR NFCe</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modals -->
+    <!-- Modal Busca Cliente -->
+    <div class="modal-overlay" id="modal-busca-cliente">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>BUSCA DE CLIENTES</h2>
+                <button class="close-btn" onclick="closeModal('modal-busca-cliente')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="text" class="modal-input" id="searchClientInput" placeholder="Digite nome ou CPF/CNPJ para buscar..." onkeyup="handleClientSearch(event)">
+                <div style="max-height: 300px; overflow-y: auto;">
+                    <table class="modal-table">
+                        <thead>
+                            <tr>
+                                <th>Nome do Cliente</th>
+                                <th>CPF/CNPJ</th>
+                                <th>Telefone</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientSearchResults">
+                            <tr><td colspan="3" style="text-align: center; color: var(--text-secondary);">Digite algo para buscar...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Aplicar Desconto -->
+    <div class="modal-overlay" id="modal-desconto">
+        <div class="modal-container" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>APLICAR DESCONTO</h2>
+                <button class="close-btn" onclick="closeModal('modal-desconto')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <label class="label">VALOR DO DESCONTO (R$)</label>
+                <input type="number" class="modal-input" id="descontoInput" placeholder="0,00" step="0.01" style="font-size: 24px; text-align: center;">
+            </div>
+            <div class="modal-footer">
+                <button class="btn-outline" onclick="closeModal('modal-desconto')">CANCELAR</button>
+                <button class="btn-neon" onclick="confirmDesconto()">APLICAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Finalizar Venda -->
+    <div class="modal-overlay" id="modal-finalizar">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>FINALIZAR VENDA</h2>
+                <button class="close-btn" onclick="closeModal('modal-finalizar')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="pay-grid">
+                    <div class="pay-info-box">
+                        <p>TOTAL DA VENDA</p>
+                        <h3 id="modalFinalizarTotal" style="color: var(--neon-blue);">R$ 0,00</h3>
+                    </div>
+                    <div class="pay-info-box">
+                        <p>TROCO</p>
+                        <h3 id="modalFinalizarTroco" style="color: var(--success-green);">R$ 0,00</h3>
+                    </div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <label class="label">FORMA DE PAGAMENTO</label>
+                    <select class="custom-select" id="modalPaymentMethod" onchange="handlePaymentMethodChange()">
+                        <option value="dinheiro">Dinheiro</option>
+                        <option value="cartao_credito">Cartão de Crédito</option>
+                        <option value="cartao_debito">Cartão de Débito</option>
+                        <option value="pix">PIX</option>
+                        <option value="misto">Misto</option>
+                        <option value="A Prazo (Fiado)">A Prazo (Fiado)</option>
+                        <option value="saldo_cliente" id="optSaldoCliente" style="display:none;" disabled>Saldo do Cliente</option>
+                    </select>
+                </div>
+                <div id="valorRecebidoContainer" style="margin-top: 15px;">
+                    <label class="label">VALOR RECEBIDO (R$)</label>
+                    <input type="number" class="modal-input" id="valorRecebidoInput" placeholder="0,00" step="0.01" style="font-size: 24px;" onkeyup="calculateTroco()">
+                </div>
+                <div id="mistoInputs" style="display: none; margin-top: 15px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+                    <p class="label" style="margin-bottom: 15px;">INFORME OS VALORES</p>
+                    <div style="display: flex; gap: 10px; margin-bottom: 0;">
+                        <div style="flex: 1;">
+                            <label class="label" style="font-size: 10px;">DINHEIRO</label>
+                            <input type="number" class="modal-input" id="mistoDinheiro" placeholder="0,00" step="0.01" onkeyup="calculateTroco()" style="margin-bottom: 0;">
+                        </div>
+                        <div style="flex: 1;">
+                            <label class="label" style="font-size: 10px;">PIX</label>
+                            <input type="number" class="modal-input" id="mistoPix" placeholder="0,00" step="0.01" onkeyup="calculateTroco()" style="margin-bottom: 0;">
+                        </div>
+                        <div style="flex: 1;">
+                            <label class="label" style="font-size: 10px;">CARTÃO</label>
+                            <input type="number" class="modal-input" id="mistoCartao" placeholder="0,00" step="0.01" onkeyup="calculateTroco()" style="margin-bottom: 0;">
+                        </div>
+                        <div style="flex: 1;">
+                            <label class="label" style="font-size: 10px;">SALDO</label>
+                            <input type="number" class="modal-input" id="mistoSaldo" placeholder="0,00" step="0.01" onkeyup="calculateTroco()" style="margin-bottom: 0;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-outline" onclick="closeModal('modal-finalizar')">CANCELAR</button>
+                <button class="btn-neon" style="background: var(--success-green); box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);" onclick="confirmFinalizarVenda()">CONFIRMAR VENDA</button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script src="app.js"></script>
+</body>
+</html>
+

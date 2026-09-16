@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Busca de Produtos</title>
+    <style>
+        :root {
+            --bg-body: #1a1d24;
+            --bg-card: #232732;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --danger: #ef4444;
+            --border: #334155;
+            --input-bg: #0f172a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            padding: 10px;
+        }
+
+        .modal-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-card);
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            text-align: left;
+        }
+
+        .modal-header {
+            padding: 15px 25px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+
+        .modal-header h2 {
+            font-size: 16px;
+            font-weight: 700;
+            margin: 0;
+            color: var(--text-main);
+            text-transform: uppercase;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 15px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 15px;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: rgba(0,0,0,0.4);
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 13px;
+            padding: 12px 15px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 12px 15px;
+            font-size: 13px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+        }
+
+        tr:hover td {
+            background: rgba(255,255,255,0.05);
+            color: var(--text-main);
+        }
+
+        tr.selected td {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--text-main);
+        }
+
+        .modal-footer {
+            padding: 10px 25px;
+            border-top: 1px solid var(--border);
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="modal-container">
+        <div class="modal-header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>PESQUISAR PRODUTO (NOME/CB)</h2>
+                <button onclick="window.chrome.webview.postMessage({ action: 'CANCEL' })" style="background: transparent; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; font-weight: bold; line-height: 1;" title="Fechar">×</button>
+            </div>
+            <input type="text" id="txtBusca" class="search-input" placeholder="Digite para buscar..." autocomplete="off">
+        </div>
+        <div class="modal-body">
+            <table id="tb-produtos">
+                <thead>
+                    <tr>
+                        <th style="width: 50%;">Descrição do Produto</th>
+                        <th style="width: 25%;">Marca / Qual.</th>
+                        <th style="width: 15%;">Preço (R$)</th>
+                        <th style="width: 10%;">Estoque</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-produtos">
+                </tbody>
+            </table>
+        </div>
+        <div class="modal-footer">
+            [ENTER] Selecionar | [ESC] Cancelar | [SETAS] Navegar na lista
+        </div>
+    </div>
+
+    <script>
+        let allProducts = [];
+        let filteredProducts = [];
+        let selectedIndex = 0;
+
+        // Formatação de Moeda
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+        }
+
+        // Recebe os produtos do C#
+        window.chrome.webview.addEventListener('message', event => {
+            const msg = event.data;
+            if (msg.action === "LOAD_DATA") {
+                allProducts = msg.produtos;
+                const initialFilter = msg.filtroInicial || "";
+                
+                document.getElementById('txtBusca').value = initialFilter;
+                filterProducts(initialFilter);
+                
+                document.getElementById('txtBusca').focus();
+            }
+        });
+
+        // Filtragem
+        function filterProducts(query) {
+            query = query.toLowerCase().trim();
+            if (!query) {
+                filteredProducts = allProducts;
+            } else {
+                const terms = query.split(' ').filter(t => t);
+                filteredProducts = allProducts.filter(p => {
+                    const nameMatch = terms.every(t => p.Nome && p.Nome.toLowerCase().includes(t));
+                    const cbMatch = p.CodigoBarras && p.CodigoBarras.includes(query);
+                    return nameMatch || cbMatch;
+                });
+            }
+            selectedIndex = 0;
+            renderTable();
+        }
+
+        // Renderização
+        function renderTable() {
+            const tbody = document.getElementById('tbody-produtos');
+            tbody.innerHTML = '';
+            
+            if (filteredProducts.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Nenhum produto encontrado.</td></tr>';
+                return;
+            }
+
+            filteredProducts.forEach((p, index) => {
+                const tr = document.createElement('tr');
+                if (index === selectedIndex) tr.classList.add('selected');
+                
+                tr.innerHTML = `
+                    <td>${p.Nome}</td>
+                    <td>${p.Marca || ''}</td>
+                    <td style="font-weight: 600;">${formatCurrency(p.PrecoVenda)}</td>
+                    <td>${p.Estoque}</td>
+                `;
+                
+                tr.onclick = () => {
+                    selectedIndex = index;
+                    renderTable();
+                    confirmSelection();
+                };
+                
+                tbody.appendChild(tr);
+            });
+            
+            scrollToSelected();
+        }
+
+        function scrollToSelected() {
+            const selectedRow = document.querySelector('tr.selected');
+            if (selectedRow) {
+                selectedRow.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+            }
+        }
+
+        // Eventos
+        const txtBusca = document.getElementById('txtBusca');
+        
+        txtBusca.addEventListener('input', (e) => {
+            filterProducts(e.target.value);
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                window.chrome.webview.postMessage({ action: "CANCEL" });
+                e.preventDefault();
+            }
+            else if (e.key === 'ArrowDown') {
+                if (selectedIndex < filteredProducts.length - 1) {
+                    selectedIndex++;
+                    renderTable();
+                }
+                e.preventDefault();
+            }
+            else if (e.key === 'ArrowUp') {
+                if (selectedIndex > 0) {
+                    selectedIndex--;
+                    renderTable();
+                }
+                e.preventDefault();
+            }
+            else if (e.key === 'Enter') {
+                confirmSelection();
+                e.preventDefault();
+            }
+        });
+
+        function confirmSelection() {
+            if (filteredProducts.length > 0 && selectedIndex >= 0 && selectedIndex < filteredProducts.length) {
+                const p = filteredProducts[selectedIndex];
+                window.chrome.webview.postMessage({
+                    action: "SELECT",
+                    id: p.Id
+                });
+            }
+        }
+    </script>
+</body>
+</html>

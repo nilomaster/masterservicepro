@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Movimentação</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container glass-card">
+        
+        <h2 id="pageTitle">Registrar Movimentação</h2>
+
+        <div class="form-group">
+            <label>Valor (R$):</label>
+            <input type="text" id="valor" class="input-money" value="0,00" autocomplete="off">
+        </div>
+
+        <div class="form-group">
+            <label>Forma de Pagamento:</label>
+            <select id="formaPagamento">
+                <option value="Dinheiro">Dinheiro</option>
+                <option value="Cartão de Crédito">Cartão de Crédito</option>
+                <option value="Cartão de Débito">Cartão de Débito</option>
+                <option value="PIX">PIX</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Subcategoria:</label>
+            <select id="subcategoria">
+                <!-- Preenchido via JS baseado no tipo -->
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Motivo / Observação:</label>
+            <input type="text" id="descricao" placeholder="Ex: Pagamento de conta de luz" autocomplete="off">
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-outline" id="btnCancel">CANCELAR</button>
+            <button class="btn btn-primary" id="btnConfirm">CONFIRMAR</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+

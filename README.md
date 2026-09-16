@@ -28,16 +28,15 @@
   - Ao confirmar, o front-end envia a escolha do pagamento ao C#.
   - O VendaRepository foi atualizado para registrar a movimenta√ß√£o de Sa√≠da com a exata FormaPagamento escolhida pelo usu√°rio.
 
-## Nova Feature: Filtro de Marca na CÛpia de WhatsApp
+## Nova Feature: Filtro de Marca na C√≥pia de WhatsApp
 
 - **Data**: 15/09/2026
 - **Arquivos Modificados**: 
   - MasterServicePro/Web/ListaPrecos/index.html
   - MasterServicePro/Forms/FrmListaPrecosWeb.cs
 - **Motivo**: 
-  A funÁ„o de copiar a tabela de preÁos gerava listas muito extensas ao copiar todos os itens de uma categoria (ex: Telas). Foi solicitada a separaÁ„o por Marca/Modelo para envio de listas mais especÌficas para o cliente ou para a equipe.
-- **ResoluÁ„o**: 
+  A fun√ß√£o de copiar a tabela de pre√ßos gerava listas muito extensas ao copiar todos os itens de uma categoria (ex: Telas). Foi solicitada a separa√ß√£o por Marca/Modelo para envio de listas mais espec√≠ficas para o cliente ou para a equipe.
+- **Resolu√ß√£o**: 
   - Adicionado um segundo Dropdown (Filtro) para 'Marca' no modal (index.html).
-  - Atualizada a formataÁ„o para incluir (Modelo) (Marca) na cÛpia da lista.
+  - Atualizada a formata√ß√£o para incluir (Modelo) (Marca) na c√≥pia da lista.
   - C# filtrando corretamente itens e aplicando o modelo/marca no texto.
-

@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Lateral</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-sidebar: #1E2129;
+            --bg-hover: #2A2F3B;
+            --primary: #6366F1;
+            --text-title: #F8FAFC;
+            --text-muted: #94A3B8;
+            --border: #333845;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        body { 
+            background-color: var(--bg-sidebar); 
+            color: var(--text-muted); 
+            height: 100vh; 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+
+        /* HEADER AREA (Logo & Hamburger) */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            height: 60px;
+            padding: 0 20px;
+            border-bottom: 1px solid var(--border);
+            justify-content: space-between;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--primary), #8B5CF6);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .logo-text {
+            color: var(--text-title);
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+            transition: opacity 0.2s;
+        }
+
+        .hamburger-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .hamburger-btn:hover {
+            color: var(--text-title);
+            background-color: var(--bg-hover);
+        }
+
+        /* MENU AREA */
+        .menu-container {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 20px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        /* CUSTOM SCROLLBAR */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.2s;
+            text-decoration: none;
+            position: relative;
+        }
+
+        .menu-item:hover {
+            background-color: var(--bg-hover);
+            color: var(--text-title);
+        }
+
+        .menu-item.active {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .menu-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+        }
+
+        .menu-text {
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: opacity 0.2s;
+        }
+
+        .menu-badge {
+            background-color: #EF4444;
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 20px;
+            margin-left: auto;
+        }
+
+        .menu-category {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #64748B;
+            font-weight: 600;
+            margin: 16px 0 8px 16px;
+            white-space: nowrap;
+            transition: opacity 0.2s;
+        }
+
+        /* USER PROFILE AREA */
+        .user-profile {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            background-color: var(--bg-hover);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-title);
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            transition: opacity 0.2s;
+        }
+
+        .user-name {
+            color: var(--text-title);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .user-role {
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        /* COLLAPSED STATE */
+        body.collapsed .logo-text,
+        body.collapsed .menu-text,
+        body.collapsed .menu-badge,
+        body.collapsed .menu-category,
+        body.collapsed .user-info {
+            opacity: 0;
+            pointer-events: none;
+            display: none;
+        }
+
+        body.collapsed .sidebar-header {
+            padding: 0;
+            justify-content: center;
+        }
+
+        body.collapsed .logo-area {
+            display: none;
+        }
+
+        body.collapsed .hamburger-btn {
+            margin: 0 auto;
+        }
+
+        body.collapsed .menu-item {
+            padding: 12px;
+            justify-content: center;
+        }
+
+        body.collapsed .menu-icon {
+            margin: 0;
+        }
+
+        body.collapsed .user-profile {
+            padding: 20px 0;
+            justify-content: center;
+        }
+        
+        /* Tooltip for collapsed state */
+        .tooltip {
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            margin-left: 10px;
+            background-color: var(--bg-hover);
+            color: var(--text-title);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 1000;
+            border: 1px solid var(--border);
+        }
+
+        body.collapsed .menu-item:hover .tooltip {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="collapsed">
+
+    <div class="sidebar-header">
+        <div class="logo-area">
+            <div class="logo-icon"><i class="ri-tools-fill"></i></div>
+            <div class="logo-text">Master Service</div>
+        </div>
+        <button class="hamburger-btn" onclick="toggleSidebar()">
+            <i class="ri-menu-unfold-line" id="hamburger-icon"></i>
+        </button>
+    </div>
+
+    <div class="menu-container">
+        <div class="menu-category">Caixa & Atendimento</div>
+        <div class="menu-item active" onclick="openForm('btnPDV', this)">
+            <i class="menu-icon ri-store-2-line"></i>
+            <span class="menu-text">PDV / Caixa</span>
+            <span class="tooltip">PDV / Caixa</span>
+        </div>
+        <div class="menu-item" onclick="openForm('btnDashboard', this)" id="menu-dashboard">
+            <i class="menu-icon ri-dashboard-3-line"></i>
+            <span class="menu-text">Visão Geral</span>
+            <span class="tooltip">Visão Geral (Dashboard)</span>
+        </div>
+        <div class="menu-item" onclick="openForm('btnOS', this)">
+            <i class="menu-icon ri-file-list-3-line"></i>
+            <span class="menu-text">Ordens de Serviço</span>
+            <span class="tooltip">Ordens de Serviço</span>
+        </div>
+        <div class="menu-item" onclick="openForm('btnClientes', this)">
+            <i class="menu-icon ri-group-line"></i>
+            <span class="menu-text">Clientes</span>
+            <span class="tooltip">Clientes</span>
+        </div>
+
+        <div class="menu-category">Estoque & Produtos</div>
+        <div class="menu-item" onclick="openForm('btnProdutos', this)" id="menu-produtos">
+            <i class="menu-icon ri-box-3-line"></i>
+            <span class="menu-text">Produtos / Peças</span>
+            <span class="tooltip">Produtos / Peças</span>
+        </div>
+        <div class="menu-item" onclick="openForm('btnEstoqueBaixo', this)" id="menu-estoque">
+            <i class="menu-icon ri-alert-line"></i>
+            <span class="menu-text">Falta de Estoque</span>
+            <span class="tooltip">Falta de Estoque</span>
+        </div>
+        <div class="menu-item" onclick="openForm('btnNovosPedidos', this)" id="menu-pedidos">
+            <i class="menu-icon ri-shopping-cart-2-line"></i>
+            <span class="menu-text">Novos Pedidos</span>
+            <span class="tooltip">Novos Pedidos</span>
+        </div>
+        <div class="menu-item" onclick="openForm('btnListaPrecos', this)">
+            <i class="menu-icon ri-price-tag-3-line"></i>
+            <span class="menu-text">Lista de Preços</span>
+            <span class="tooltip">Lista de Preços</span>
+        </div>
+
+        <div class="menu-category">Gestão & Config.</div>
+        <div class="menu-item" onclick="openForm('btnFinanceiro', this)" id="menu-financeiro">
+            <i class="menu-icon ri-wallet-3-line"></i>
+            <span class="menu-text">Financeiro / Caixa</span>
+            <span class="tooltip">Financeiro / Caixa</span>
+        </div>
+        <div class="menu-item" onclick="openForm('btnRelatorios', this)" id="menu-relatorios">
+            <i class="menu-icon ri-bar-chart-box-line"></i>
+            <span class="menu-text">Relatórios Gerais</span>
+            <span class="tooltip">Relatórios Gerais</span>
+        </div>
+        <div class="menu-item" onclick="openForm('btnConfiguracoes', this)" id="menu-configuracoes">
+            <i class="menu-icon ri-settings-4-line"></i>
+            <span class="menu-text">Configurações</span>
+            <span class="tooltip">Configurações</span>
+        </div>
+    </div>
+
+    <div class="user-profile">
+        <div class="avatar" id="user-avatar">AD</div>
+        <div class="user-info">
+            <div class="user-name" id="user-name">Carregando...</div>
+            <div class="user-role" id="user-role">Aguarde</div>
+        </div>
+    </div>
+
+    <script>
+        let isExpanded = false;
+
+        function toggleSidebar() {
+            isExpanded = !isExpanded;
+            const body = document.body;
+            const icon = document.getElementById('hamburger-icon');
+
+            if (isExpanded) {
+                body.classList.remove('collapsed');
+                icon.className = 'ri-menu-fold-line';
+            } else {
+                body.classList.add('collapsed');
+                icon.className = 'ri-menu-unfold-line';
+            }
+
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage({ 
+                    action: 'toggle_sidebar', 
+                    expanded: isExpanded 
+                });
+            }
+        }
+
+        function openForm(target, element) {
+            // Remove active from all
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            // Add active to clicked
+            element.classList.add('active');
+
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage({ 
+                    action: 'open_form', 
+                    target: target 
+                });
+            }
+        }
+
+        // Initialize User Data
+        if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.addEventListener('message', event => {
+                try {
+                    const msg = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                    
+                    if (msg.action === 'init_user') {
+                        document.getElementById('user-name').innerText = msg.user;
+                        document.getElementById('user-role').innerText = msg.role;
+                        document.getElementById('user-avatar').innerText = msg.user.substring(0, 2).toUpperCase();
+
+                        // Hide admin menus if not admin
+                        if (!msg.isAdmin) {
+                            const menuRelat = document.getElementById('menu-relatorios');
+                            if (menuRelat) {
+                                const textSpan = menuRelat.querySelector('.menu-text');
+                                if (textSpan) textSpan.innerText = 'Histórico Vendas/OS';
+                            }
+                            document.getElementById('menu-configuracoes').style.display = 'none';
+                            document.getElementById('menu-dashboard').style.display = 'none';
+                            document.getElementById('menu-produtos').style.display = 'none';
+                            document.getElementById('menu-estoque').style.display = 'none';
+                            document.getElementById('menu-pedidos').style.display = 'none';
+                        }
+                    }
+                    else if (msg.action === 'set_active') {
+                        document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+                        const btn = document.querySelector(`[onclick="openForm('${msg.target}', this)"]`);
+                        if (btn) btn.classList.add('active');
+                    }
+
+                } catch(e) { console.error(e); }
+            });
+        }
+    </script>
+</body>
+</html>
+

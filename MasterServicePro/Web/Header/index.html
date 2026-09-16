@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; user-select: none; }
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body { 
+            background-color: #1A1D24; 
+            color: #F8FAFC; 
+            overflow: hidden; 
+            display: flex; 
+            align-items: stretch; /* preenche a altura total */
+            justify-content: space-between; 
+            border-bottom: 1px solid #333845;
+        }
+        .drag-area { 
+            flex: 1; 
+            height: 100%; 
+            display: flex; 
+            align-items: center; 
+            padding-left: 20px; 
+            font-size: 14px; 
+            font-weight: 500;
+            color: #CBD5E1;
+            cursor: grab; 
+        }
+        .drag-area:active { cursor: grabbing; }
+        .window-controls { display: flex; height: 100%; }
+        .btn { 
+            width: 50px; 
+            height: 100%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            cursor: pointer; 
+            transition: 0.2s; 
+            color: #94A3B8;
+        }
+        .btn:hover { background-color: #2A2F3B; color: #F8FAFC; }
+        .btn-close:hover { background-color: #EF4444; color: white; }
+    </style>
+</head>
+<body>
+    <div class="drag-area" id="dragArea">
+        <span id="headerTitle">Dashboard</span>
+    </div>
+    <div class="window-controls">
+        <div class="btn" onclick="sendAction('minimize')">
+            <svg width="10" height="1" viewBox="0 0 10 1"><rect width="10" height="1" fill="currentColor"/></svg>
+        </div>
+        <div class="btn btn-close" onclick="sendAction('close')">
+            <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1l8 8m0-8L1 9" stroke="currentColor" stroke-width="1.5"/></svg>
+        </div>
+    </div>
+    <script>
+        document.getElementById('dragArea').addEventListener('mousedown', function(e) {
+            if (e.button === 0) window.chrome.webview.postMessage({action: 'drag'});
+        });
+        
+        function sendAction(action) {
+            window.chrome.webview.postMessage({action: action});
+        }
+
+        if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.addEventListener('message', event => {
+                const msg = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                if (msg.action === 'set_title') {
+                    document.getElementById('headerTitle').innerText = msg.title;
+                }
+            });
+        }
+    </script>
+</body>
+</html>

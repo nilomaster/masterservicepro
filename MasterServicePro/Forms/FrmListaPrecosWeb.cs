@@ -178,10 +178,15 @@ namespace MasterServicePro.Forms
 
             var grupoCategorias = itensParaCopiar.GroupBy(p => p.Categoria).OrderBy(g => g.Key);
 
+            // Obtendo os modelos/fabricantes distintos para o cabeçalho
+            var modelosDistintos = itensParaCopiar.Select(p => DetectarMarca(p).ToUpper().Replace(" / REDMI", "").Replace("IPHONE", "IPHONE")).Distinct().ToList();
+            string modelosHeader = string.Join(", ", modelosDistintos);
+
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("*GEEK CELL DISTRIBUIDORA*");
             sb.AppendLine("💵 TABELA DE PREÇOS - PEÇAS E PRODUTOS");
-            sb.AppendLine($"Atualizada em: {DateTime.Now:dd/MM/yyyy HH:mm}");
+            sb.AppendLine($"MODELOS: {modelosHeader}");
+            sb.AppendLine($"ATUALIZADA EM: {DateTime.Now:dd/MM/yyyy HH:mm}");
             sb.AppendLine("--------------------------------------------------");
             sb.AppendLine();
 
@@ -196,17 +201,19 @@ namespace MasterServicePro.Forms
                 foreach (var grupoMarca in produtosPorMarca)
                 {
                     sb.AppendLine();
-                    sb.AppendLine($"*_{grupoMarca.Key.ToUpper()}_*");
+                    sb.AppendLine($"{grupoMarca.Key.ToUpper().Replace(" COM ARO", "").Replace(" SEM ARO", "")}");
                     foreach (var item in grupoMarca.OrderBy(x => x.Nome))
                     {
-                        // Exemplo pedido: TELA ORIGINAL (MODELO APARELHO) C/A (LZH)
-                        // Vamos garantir que o modelo esteja entre parênteses logo após o nome, 
-                        // e que a marca ou outras informações fiquem visíveis.
-                        
+                        string nomeTratado = item.Nome;
+                        if (nomeTratado.ToUpper().StartsWith("TELA "))
+                        {
+                            nomeTratado = nomeTratado.Substring(5).Trim();
+                        }
+
                         string modeloPart = !string.IsNullOrEmpty(item.Modelo) ? $" ({item.Modelo.Trim()})" : "";
                         string marcaPart = !string.IsNullOrEmpty(item.Marca) ? $" ({item.Marca.Trim()})" : "";
                         
-                        sb.AppendLine($"• 📱 {item.Nome}{modeloPart}{marcaPart} - *{item.PrecoVenda:C2}*");
+                        sb.AppendLine($"* 📱 {nomeTratado}{modeloPart}{marcaPart} - *{item.PrecoVenda:C2}*");
                     }
                 }
                 sb.AppendLine();

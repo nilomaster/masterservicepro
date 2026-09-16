@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - MasterServicePro</title>
+    <!-- Google Fonts loaded asynchronously -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <!-- Phosphor Icons loaded asynchronously -->
+    <script src="https://unpkg.com/@phosphor-icons/web" async></script>
+    <style>
+        :root {
+            --bg-dark: #0A0D14;
+            --bg-card: #151822;
+            --primary: #4361EE;
+            --primary-hover: #3A56D4;
+            --primary-glow: rgba(67, 97, 238, 0.4);
+            --text-main: #FFFFFF;
+            --text-secondary: #94A3B8;
+            --border-color: #2E3340;
+            --danger: #EF4444;
+            --input-bg: #1A1D27;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-card);
+            color: var(--text-main);
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .login-container {
+            width: 100%;
+            height: 100%;
+            padding: 25px 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            transform: translateY(0);
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 1; /* Fixed: Base opacity must be 1, otherwise changing animations makes it disappear */
+            position: relative;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .logo-container img {
+            max-width: 190px;
+            height: auto;
+            object-fit: contain;
+            display: none; /* Shown via JS when loaded */
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+        }
+
+        /* Fallback logo just in case */
+        .fallback-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.5px;
+        }
+        .fallback-logo i {
+            color: var(--primary);
+            font-size: 32px;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 16px;
+            font-weight: 400;
+            color: var(--text-secondary);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-left: 2px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 14px;
+            color: var(--text-secondary);
+            font-size: 18px;
+            transition: color 0.3s;
+        }
+
+        input {
+            width: 100%;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 14px 14px 14px 40px;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input::placeholder {
+            color: #4B5563;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            background-color: #1c202b;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+        }
+
+        input:focus + i, input:not(:placeholder-shown) + i {
+            color: var(--primary);
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-size: 13px;
+            text-align: center;
+            font-weight: 500;
+            min-height: 18px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .error-message.visible {
+            opacity: 1;
+        }
+
+        .btn-login {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px var(--primary-glow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-login:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.5);
+        }
+
+        .btn-login:active {
+            transform: translateY(1px);
+        }
+
+        .btn-login.loading {
+            color: transparent;
+        }
+
+        .btn-login.loading::after {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #4B5563;
+        }
+        
+        .sys-btn-container {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+        
+        .sys-btn {
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 20px;
+            transition: color 0.2s;
+        }
+        .sys-btn:hover {
+            color: var(--text-main);
+        }
+        .sys-btn.close:hover {
+            color: var(--danger);
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="sys-btn-container">
+            <i class="ph ph-minus sys-btn" onclick="sendAction('MINIMIZE')" title="Minimizar"></i>
+            <i class="ph ph-x sys-btn close" onclick="sendAction('CLOSE')" title="Fechar"></i>
+        </div>
+
+        <div class="logo-container">
+            <img id="imgLogo" src="" alt="MasterServicePro Logo">
+            <div class="fallback-logo" id="fallbackLogo">
+                <i class="ph-fill ph-shield-check"></i>
+                MasterServicePro
+            </div>
+            <p class="title">Acesse sua conta para continuar</p>
+        </div>
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label>Usuário</label>
+                <div class="input-wrapper">
+                    <input type="text" id="txtUsuario" placeholder="Digite seu usuário" required autocomplete="username">
+                    <i class="ph ph-user"></i>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Senha</label>
+                <div class="input-wrapper">
+                    <input type="password" id="txtSenha" placeholder="Digite sua senha" required autocomplete="current-password">
+                    <i class="ph ph-lock-key"></i>
+                </div>
+            </div>
+
+            <div class="error-message" id="lblError">Usuário ou senha inválidos</div>
+
+            <button type="submit" class="btn-login" id="btnLogin" style="margin-top: 20px;">
+                ENTRAR
+                <i class="ph-bold ph-arrow-right"></i>
+            </button>
+        </form>
+
+        <div class="footer">
+            &copy; 2026 MasterServicePro. Todos os direitos reservados.
+        </div>
+    </div>
+
+    <script>
+        // Set focus to username field initially
+        setTimeout(() => {
+            document.getElementById('txtUsuario').focus();
+        }, 300);
+
+        function sendAction(actionName, data = null) {
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage({ action: actionName, data: data });
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('btnLogin');
+            btn.classList.add('loading');
+            document.getElementById('lblError').classList.remove('visible');
+
+            const usuario = document.getElementById('txtUsuario').value;
+            const senha = document.getElementById('txtSenha').value;
+
+            // Small timeout for visual feedback
+            setTimeout(() => {
+                sendAction('LOGIN', { usuario: usuario, senha: senha });
+            }, 500);
+        }
+
+        // Called from C# to show error
+        function showError(message) {
+            const btn = document.getElementById('btnLogin');
+            btn.classList.remove('loading');
+            
+            const errorLbl = document.getElementById('lblError');
+            errorLbl.style.color = '#f43f5e'; // Reset to red
+            errorLbl.innerText = message;
+            errorLbl.classList.add('visible');
+            
+            // Shake effect
+            const container = document.querySelector('.login-container');
+            container.style.opacity = '1'; /* Ensure it stays visible */
+            container.style.animation = 'none';
+            container.offsetHeight; /* trigger reflow */
+            container.style.animation = 'shake 0.4s cubic-bezier(.36,.07,.19,.97) both';
+            
+            document.getElementById('txtSenha').value = '';
+            document.getElementById('txtSenha').focus();
+        }
+
+        // Called from C# to show success loading state
+        function showSuccess(message) {
+            const errorLbl = document.getElementById('lblError');
+            errorLbl.style.color = '#4ade80'; // Success green
+            errorLbl.innerText = message;
+            errorLbl.classList.add('visible');
+        }
+
+        // Called from C# to load the image base64
+        function loadLogo(base64str) {
+            if (base64str) {
+                const img = document.getElementById('imgLogo');
+                img.src = 'data:image/png;base64,' + base64str;
+                img.style.display = 'block';
+                document.getElementById('fallbackLogo').style.display = 'none';
+            }
+        }
+
+        // Insert shake keyframes dynamically
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes shake {
+                10%, 90% { transform: translate3d(-1px, 0, 0); }
+                20%, 80% { transform: translate3d(2px, 0, 0); }
+                30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+                40%, 60% { transform: translate3d(4px, 0, 0); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        window.addEventListener('load', () => {
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage({ action: 'ready' });
+            }
+        });
+    </script>
+</body>
+</html>

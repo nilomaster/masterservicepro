@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <h1>Visão Geral</h1>
+                <p>Resumo financeiro e métricas do sistema</p>
+            </div>
+            <div>
+                <button class="btn-neon" onclick="abrirCorrecoes()" style="background: linear-gradient(135deg, #F59E0B, #D97706); margin-right: 10px;">🛠️ Correções (Admin)</button>
+                <button class="btn-neon" onclick="refreshData()">Atualizar Dados</button>
+            </div>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="cards-grid">
+            <div class="glass-card metric-card card-primary">
+                <div class="metric-title">Renda de Hoje</div>
+                <div class="metric-value" id="valDiaria">R$ 0,00</div>
+                <div class="trend-indicator" id="trendDiaria"></div>
+            </div>
+            <div class="glass-card metric-card card-success">
+                <div class="metric-title">Renda da Semana</div>
+                <div class="metric-value" id="valSemanal">R$ 0,00</div>
+                <div class="trend-indicator" id="trendSemanal"></div>
+            </div>
+            <div class="glass-card metric-card card-warning">
+                <div class="metric-title">Renda do Mês</div>
+                <div class="metric-value" id="valMensal">R$ 0,00</div>
+                <div class="trend-indicator" id="trendMensal"></div>
+            </div>
+        </div>
+
+        <!-- Alerts Grid -->
+        <div class="alerts-grid">
+            <div class="glass-card alert-card">
+                <div class="alert-icon" style="color: #F59E0B;">⚠️</div>
+                <div class="alert-content">
+                    <h4>Estoque Baixo</h4>
+                    <p id="lblEstoqueBaixo">Carregando...</p>
+                </div>
+            </div>
+            <div class="glass-card alert-card">
+                <div class="alert-icon" style="color: #EF4444;">🔴</div>
+                <div class="alert-content">
+                    <h4>O.S. em Atraso</h4>
+                    <p id="lblOsAtraso">Carregando...</p>
+                </div>
+            </div>
+            <div class="glass-card alert-card">
+                <div class="alert-icon" style="color: #3B82F6;">📅</div>
+                <div class="alert-content">
+                    <h4>Contas de Hoje</h4>
+                    <p id="lblContasHoje">Carregando...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="charts-grid">
+            <div class="glass-card chart-container">
+                <h3 class="chart-title">Faturamento - Últimos 7 Dias</h3>
+                <div style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+            <div class="glass-card chart-container">
+                <h3 class="chart-title">Distribuição (Mês)</h3>
+                <div style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

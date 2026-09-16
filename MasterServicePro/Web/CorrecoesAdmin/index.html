@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Correções (Admin/Caixa)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #1a1d24;
+            --surface-color: #242832;
+            --surface-hover: #1f232b;
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a5b1;
+            --border-color: #374151;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            background: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h1 span {
+            color: var(--primary-color);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            padding: 0 2rem;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--surface-color);
+        }
+
+        .tab {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+        }
+
+        .tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        /* Container */
+        .container {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Table */
+        .table-container {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: var(--surface-color);
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        tr:hover {
+            background-color: var(--surface-hover);
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        select {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        select:focus {
+            border-color: var(--primary-color);
+        }
+
+        button.btn-corrigir {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        button.btn-corrigir:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        /* Custom Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            width: 400px;
+            max-width: 90%;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes zoomIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal h2 {
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+
+        .modal p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .btn-cancel {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-cancel:hover {
+            background: rgba(255,255,255,0.05);
+            color: var(--text-primary);
+        }
+
+        .btn-confirm {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-confirm:hover {
+            background: var(--primary-hover);
+        }
+
+        .empty-state {
+            padding: 3rem;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--surface-color); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1><span>⚙️</span> Correções Admin/Caixa</h1>
+        <div style="font-size: 0.9rem; color: var(--text-secondary);">Alteração de Forma de Pagamento</div>
+    </header>
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('vendas')">Vendas (PDV)</div>
+        <div class="tab" onclick="switchTab('os')">Ordens de Serviço</div>
+    </div>
+
+    <div class="container">
+        <!-- VENDAS TAB -->
+        <div id="vendas" class="tab-content active">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Data</th>
+                            <th>Cliente</th>
+                            <th>Itens</th>
+                            <th>Forma de Pag.</th>
+                            <th>Total</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tb-vendas">
+                        <!-- Preenchido via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- OS TAB -->
+        <div id="os" class="tab-content">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>OS #</th>
+                            <th>Abertura</th>
+                            <th>Cliente</th>
+                            <th>Aparelho</th>
+                            <th>Forma de Pag.</th>
+                            <th>Total</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tb-os">
+                        <!-- Preenchido via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script>
+        let currentCorrection = null;
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+        }
+
+        // CHAMADO PELO C# PARA CARREGAR AS VENDAS
+        function loadVendas(vendasJson) {
+            const vendas = JSON.parse(vendasJson);
+            const tbody = document.getElementById('tb-vendas');
+            tbody.innerHTML = '';
+            
+            if(vendas.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Nenhuma venda encontrada nos últimos 30 dias.</td></tr>`;
+                return;
+            }
+
+            vendas.forEach(v => {
+                const tr = document.createElement('tr');
+                const isCancelada = v.Status === 'Cancelada';
+                tr.innerHTML = `
+                    <td>#${v.Id}</td>
+                    <td>${new Date(v.DataVenda).toLocaleString('pt-BR')}</td>
+                    <td>${v.Cliente || 'Consumidor'}</td>
+                    <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${v.ItensVendidos}">${v.ItensVendidos}</td>
+                    <td>
+                        ${isCancelada ? '<span class="badge" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">CANCELADA</span>' : `<span class="badge" style="background: rgba(99, 102, 241, 0.1); color: var(--primary-color);">${v.FormaPagamento.toUpperCase()}</span>`}
+                    </td>
+                    <td style="font-weight: 600;">${isCancelada ? '<s style="color: #666;">' + formatCurrency(v.TotalFinal) + '</s>' : formatCurrency(v.TotalFinal)}</td>
+                    <td style="display: flex; gap: 5px; flex-wrap: wrap; min-width: 250px;">
+                        ${isCancelada ? '' : `
+                        <button class="btn-corrigir" onclick="openModal('venda', ${v.Id}, '${v.FormaPagamento}', ${v.TotalFinal})">
+                            Editar Pgto
+                        </button>
+                        <button class="btn-corrigir" style="background: rgba(16, 185, 129, 0.1); color: var(--success); border-color: rgba(16, 185, 129, 0.2);" onclick="editarCliente('venda', ${v.Id})">
+                            Editar Cliente
+                        </button>
+                        <button class="btn-corrigir" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2);" onclick="trocarVenda(${v.Id})">
+                            Troca
+                        </button>
+                        <button class="btn-corrigir" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2);" onclick="cancelarVenda(${v.Id})">
+                            Cancelar
+                        </button>
+                        `}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // CHAMADO PELO C# PARA CARREGAR AS OS
+        function loadOS(osJson) {
+            const ordens = JSON.parse(osJson);
+            const tbody = document.getElementById('tb-os');
+            tbody.innerHTML = '';
+            
+            if(ordens.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Nenhuma OS finalizada/entregue encontrada.</td></tr>`;
+                return;
+            }
+
+            ordens.forEach(o => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>OS #${o.NumeroOS || o.Id}</td>
+                    <td>${new Date(o.DataAbertura).toLocaleString('pt-BR')}</td>
+                    <td>${o.Cliente}</td>
+                    <td>${o.Marca} ${o.Modelo}</td>
+                    <td><span class="badge" style="background: rgba(99, 102, 241, 0.1); color: var(--primary-color);">CONSULTAR CAIXA</span></td>
+                    <td style="font-weight: 600;">${formatCurrency(o.ValorTotal)}</td>
+                    <td>
+                        <button class="btn-corrigir" onclick="openModal('os', ${o.Id}, 'dinheiro', ${o.ValorTotal})">
+                            Editar Pgto
+                        </button>
+                        <button class="btn-corrigir" style="background: rgba(16, 185, 129, 0.1); color: var(--success); border-color: rgba(16, 185, 129, 0.2);" onclick="editarCliente('os', ${o.Id})">
+                            Editar Cliente
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openModal(type, id, currentMethod, total) {
+            try {
+                window.chrome.webview.postMessage(JSON.stringify({
+                    action: 'PROMPT_CORRECAO',
+                    type: type,
+                    id: id,
+                    total: total
+                }));
+            } catch(e) {
+                console.error("WebView2 not found", e);
+            }
+        }
+
+        function trocarVenda(id) {
+            try {
+                window.chrome.webview.postMessage(JSON.stringify({
+                    action: 'TROCAR_VENDA',
+                    id: id
+                }));
+            } catch(e) {
+                console.error("WebView2 not found", e);
+            }
+        }
+
+        function cancelarVenda(id) {
+            try {
+                window.chrome.webview.postMessage(JSON.stringify({
+                    action: 'CANCELAR_VENDA',
+                    id: id
+                }));
+            } catch(e) {
+                console.error("WebView2 not found", e);
+            }
+        }
+
+        function editarCliente(type, id) {
+            try {
+                window.chrome.webview.postMessage(JSON.stringify({
+                    action: 'EDITAR_CLIENTE',
+                    type: type,
+                    id: id
+                }));
+            } catch(e) {
+                console.error("WebView2 not found", e);
+            }
+        }
+
+        // Solicita dados iniciais ao carregar
+        window.onload = () => {
+            try {
+                window.chrome.webview.postMessage(JSON.stringify({ action: 'READY' }));
+            } catch(e) {}
+        };
+    </script>
+</body>
+</html>

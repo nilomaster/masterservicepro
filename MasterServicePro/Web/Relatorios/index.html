@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios Gerenciais</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-app: #1A1D24;
+            --bg-card: #222630;
+            --bg-card-hover: #2A2F3B;
+            --bg-sidebar: #1E2129;
+            --element-border: #333845;
+            --primary: #6366F1;
+            --primary-hover: #4F46E5;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --text-title: #F8FAFC;
+            --text-body: #CBD5E1;
+            --text-muted: #94A3B8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-app); color: var(--text-body); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+        /* HEADER */
+        .header { padding: 24px 32px; background-color: var(--bg-card); border-bottom: 1px solid var(--element-border); }
+        .title-area h1 { color: var(--text-title); font-size: 24px; font-weight: 600; margin-bottom: 4px; }
+        .title-area p { color: var(--text-muted); font-size: 14px; }
+
+        /* TOOLBAR */
+        .toolbar { padding: 16px 32px; background-color: var(--bg-card); border-bottom: 1px solid var(--element-border); display: flex; gap: 16px; align-items: center; justify-content: space-between; }
+        .filters { display: flex; gap: 16px; align-items: center; }
+        .filter-group { display: flex; align-items: center; gap: 8px; }
+        .filter-group label { font-size: 14px; font-weight: 500; color: var(--text-title); }
+        .filter-group input, .filter-group select { background-color: var(--bg-sidebar); border: 1px solid var(--element-border); color: var(--text-title); padding: 8px 12px; border-radius: 6px; font-size: 14px; }
+        
+        .btn { padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+        .btn-secondary { background-color: var(--bg-sidebar); color: var(--text-title); border: 1px solid var(--element-border); }
+        .btn-secondary:hover { background-color: var(--bg-card-hover); }
+
+        /* TABS */
+        .tabs { display: flex; padding: 0 32px; background-color: var(--bg-app); border-bottom: 1px solid var(--element-border); overflow-x: auto; }
+        .tab { padding: 16px 24px; color: var(--text-muted); font-weight: 500; font-size: 14px; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+        .tab:hover { color: var(--text-title); }
+        .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        /* CONTENT */
+        .content { flex: 1; padding: 24px 32px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; }
+        .tab-pane { display: none; flex-direction: column; gap: 24px; height: 100%; }
+        .tab-pane.active { display: flex; }
+
+        /* STATS GRID */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; }
+        .stat-card { background-color: var(--bg-card); border: 1px solid var(--element-border); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 8px; position: relative; overflow: hidden; }
+        .stat-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background-color: var(--primary); }
+        .stat-card.success::before { background-color: var(--success); }
+        .stat-card.danger::before { background-color: var(--danger); }
+        .stat-card.warning::before { background-color: var(--warning); }
+        .stat-title { color: var(--text-muted); font-size: 13px; font-weight: 500; }
+        .stat-value { color: var(--text-title); font-size: 24px; font-weight: 700; }
+
+        /* TABLE */
+        .table-container { background-color: var(--bg-card); border-radius: 12px; border: 1px solid var(--element-border); overflow: hidden; flex: 1; display: flex; flex-direction: column; }
+        .table-wrapper { overflow-y: auto; flex: 1; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background-color: var(--bg-sidebar); color: var(--text-muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; padding: 16px 20px; border-bottom: 1px solid var(--element-border); position: sticky; top: 0; }
+        td { padding: 16px 20px; font-size: 14px; border-bottom: 1px solid var(--element-border); color: var(--text-body); }
+        tbody tr:hover { background-color: var(--bg-card-hover); }
+
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+        .status-badge.success { background-color: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .status-badge.danger { background-color: rgba(239, 68, 68, 0.1); color: var(--danger); }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-app); }
+        ::-webkit-scrollbar-thumb { background: var(--element-border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        /* Responsividade 1366x768 (Laptops) */
+        @media (max-width: 1400px), (max-height: 800px) {
+            .header { padding: 15px 20px; }
+            .content { padding: 15px 20px; gap: 15px; }
+            .header h1 { font-size: 20px; }
+            .toolbar { padding: 15px 20px; }
+            .tabs { padding: 0 20px; }
+            .tab { padding: 10px 15px; font-size: 13px; }
+            .btn { padding: 8px 12px; font-size: 12px; }
+            .stat-card { padding: 15px; }
+            .stat-title { font-size: 11px; margin-bottom: 5px; }
+            .stat-value { font-size: 20px; }
+            th { padding: 12px 15px; font-size: 11px; }
+            td { padding: 12px 15px; font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="title-area">
+            <h1>Relatórios Gerenciais</h1>
+            <p>Visualize, exporte e imprima resumos de vendas, caixa e auditoria.</p>
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <div class="filters">
+            <div class="filter-group">
+                <label>De</label>
+                <input type="date" id="dtInicio">
+            </div>
+            <div class="filter-group">
+                <label>Até</label>
+                <input type="date" id="dtFim">
+            </div>
+            <button class="btn btn-primary" onclick="filtrar()">
+                <i class="ri-search-line"></i> Filtrar
+            </button>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('vendas')"><i class="ri-shopping-bag-3-line"></i> Vendas por Período</div>
+        <div class="tab" onclick="switchTab('categorias')"><i class="ri-price-tag-3-line"></i> Categorias</div>
+        <div class="tab" onclick="switchTab('custos')"><i class="ri-settings-4-line"></i> Custos e Lucros</div>
+        <div class="tab" onclick="switchTab('financeiro')"><i class="ri-money-dollar-circle-line"></i> Fluxo de Caixa</div>
+        <div class="tab" onclick="switchTab('auditoria')"><i class="ri-file-list-3-line"></i> Auditoria</div>
+    </div>
+
+    <div class="content">
+        <!-- VENDAS -->
+        <div class="tab-pane active" id="tab-vendas">
+            <div class="stats-grid">
+                <div class="stat-card success">
+                    <div class="stat-title">Total Vendas (Produtos)</div>
+                    <div class="stat-value" id="vendas-total">R$ 0,00</div>
+                </div>
+                <div class="stat-card primary">
+                    <div class="stat-title">Quantidade Vendas</div>
+                    <div class="stat-value" id="vendas-qtd">0</div>
+                </div>
+                <div class="stat-card primary">
+                    <div class="stat-title">Tíquete Médio</div>
+                    <div class="stat-value" id="vendas-ticket">R$ 0,00</div>
+                </div>
+            </div>
+            <div class="table-container">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Venda #</th>
+                                <th>Data/Hora</th>
+                                <th>Cliente</th>
+                                <th>Pagamento</th>
+                                <th>Total</th>
+                                <th>Situação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-vendas"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- CATEGORIAS -->
+        <div class="tab-pane" id="tab-categorias">
+            <div class="stats-grid" style="margin-bottom: 16px;">
+                <div class="stat-card warning">
+                    <div class="stat-title">Faturamento (Hoje) Mão de Obra</div>
+                    <div class="stat-value" id="cat-hoje-maodeobra">R$ 0,00</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-title">Faturamento (Hoje) Telas</div>
+                    <div class="stat-value" id="cat-hoje-telas">R$ 0,00</div>
+                </div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card danger">
+                    <div class="stat-title">Custo Total</div>
+                    <div class="stat-value" id="cat-custo">R$ 0,00</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-title">Faturamento Total</div>
+                    <div class="stat-value" id="cat-faturamento">R$ 0,00</div>
+                </div>
+                <div class="stat-card primary">
+                    <div class="stat-title">Lucro Total</div>
+                    <div class="stat-value" id="cat-lucro">R$ 0,00</div>
+                </div>
+            </div>
+            <div class="table-container">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Categoria / Origem</th>
+                                <th>Descrição (O que foi feito)</th>
+                                <th>Custo (R$)</th>
+                                <th>Faturamento (R$)</th>
+                                <th>Lucro (R$)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-categorias"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- CUSTOS E LUCROS -->
+        <div class="tab-pane" id="tab-custos">
+            <div class="stats-grid">
+                <div class="stat-card danger">
+                    <div class="stat-title">Custo Total de Peças</div>
+                    <div class="stat-value" id="custos-pecas">R$ 0,00</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-title">Faturamento (Mão de Obra)</div>
+                    <div class="stat-value" id="custos-fat">R$ 0,00</div>
+                </div>
+                <div class="stat-card primary">
+                    <div class="stat-title">Lucro Líquido Real</div>
+                    <div class="stat-value" id="custos-lucro">R$ 0,00</div>
+                </div>
+            </div>
+            <div class="table-container">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>OS #</th>
+                                <th>Data</th>
+                                <th>Peças Usadas</th>
+                                <th>Custo Peças</th>
+                                <th>Mão de Obra</th>
+                                <th>Lucro Líquido</th>
+                                <th>Técnico</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-custos"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- FINANCEIRO -->
+        <div class="tab-pane" id="tab-financeiro">
+            <div class="stats-grid">
+                <div class="stat-card success">
+                    <div class="stat-title">Total de Entradas (+)</div>
+                    <div class="stat-value" id="fin-entradas">R$ 0,00</div>
+                </div>
+                <div class="stat-card danger">
+                    <div class="stat-title">Total de Saídas (-)</div>
+                    <div class="stat-value" id="fin-saidas">R$ 0,00</div>
+                </div>
+                <div class="stat-card primary">
+                    <div class="stat-title">Saldo Líquido</div>
+                    <div class="stat-value" id="fin-saldo">R$ 0,00</div>
+                </div>
+            </div>
+            <div class="table-container">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Data</th>
+                                <th>Descrição</th>
+                                <th>Pagamento</th>
+                                <th>Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-financeiro"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- AUDITORIA -->
+        <div class="tab-pane" id="tab-auditoria">
+            <div class="stats-grid">
+                <div class="stat-card primary">
+                    <div class="stat-title">Ações Registradas no Período</div>
+                    <div class="stat-value" id="audit-total">0</div>
+                </div>
+            </div>
+            <div class="table-container">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data/Hora</th>
+                                <th>Ação</th>
+                                <th>Módulo</th>
+                                <th>Detalhes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-auditoria"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Init dates
+        const hoje = new Date();
+        const mesPassado = new Date();
+        mesPassado.setDate(hoje.getDate() - 30);
+        
+        document.getElementById('dtInicio').value = mesPassado.toISOString().split('T')[0];
+        document.getElementById('dtFim').value = hoje.toISOString().split('T')[0];
+
+        let currentTab = 'vendas';
+
+        function switchTab(tabId) {
+            currentTab = tabId;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            
+            event.currentTarget.classList.add('active');
+            document.getElementById('tab-' + tabId).classList.add('active');
+        }
+
+        function formatCurrency(val) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
+        }
+
+        function formatDate(str) {
+            if (!str) return '-';
+            try { return new Date(str).toLocaleString('pt-BR'); } catch(e) { return str; }
+        }
+
+        if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.addEventListener('message', event => {
+                try {
+                    const msg = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                    
+                    if (msg.action === 'init_relatorios') {
+                        const d = new Date();
+                        const formatYMD = (dateObj) => {
+                            const offset = dateObj.getTimezoneOffset() * 60000;
+                            return new Date(dateObj.getTime() - offset).toISOString().split('T')[0];
+                        };
+
+                        if (!msg.isAdmin) {
+                            const tabs = document.querySelectorAll('.tab');
+                            if (tabs.length > 1) tabs[1].style.display = 'none';
+                            if (tabs.length > 2) tabs[2].style.display = 'none';
+                            if (tabs.length > 3) tabs[3].style.display = 'none';
+                            if (tabs.length > 4) tabs[4].style.display = 'none';
+                            
+                            document.querySelector('.title-area h1').innerText = 'Histórico de Vendas e OS';
+                            document.querySelector('.title-area p').innerText = 'Acompanhe as vendas e ordens de serviço do dia a dia.';
+                            
+                            document.querySelector('.tabs').style.display = 'none';
+
+                            document.getElementById('dtInicio').value = formatYMD(d);
+                            document.getElementById('dtFim').value = formatYMD(d);
+                        } else {
+                            if (!document.getElementById('dtInicio').value) {
+                                const primeiroDiaMes = new Date(d.getFullYear(), d.getMonth(), 1);
+                                document.getElementById('dtInicio').value = formatYMD(primeiroDiaMes);
+                                document.getElementById('dtFim').value = formatYMD(d);
+                            }
+                        }
+                        
+                        filtrar();
+                    }
+
+                    if (msg.action === 'load_vendas') renderVendas(msg.data, msg.stats);
+                    if (msg.action === 'load_categorias') renderCategorias(msg.data, msg.stats);
+                    if (msg.action === 'load_custos') renderCustos(msg.data, msg.stats);
+                    if (msg.action === 'load_financeiro') renderFinanceiro(msg.data, msg.stats);
+                    if (msg.action === 'load_auditoria') renderAuditoria(msg.data, msg.stats);
+
+                } catch(e) { console.error(e); }
+            });
+        }
+
+        function filtrar() {
+            const inicio = document.getElementById('dtInicio').value;
+            const fim = document.getElementById('dtFim').value;
+            
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage({ action: 'filtrar', inicio, fim });
+            }
+        }
+
+        function renderVendas(data, stats) {
+            document.getElementById('vendas-total').innerText = formatCurrency(stats.total);
+            document.getElementById('vendas-qtd').innerText = stats.qtd;
+            document.getElementById('vendas-ticket').innerText = formatCurrency(stats.ticket);
+
+            const tbody = document.getElementById('tbody-vendas');
+            tbody.innerHTML = '';
+            data.forEach(r => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="font-weight: 600;">${r.Id}</td>
+                        <td>${formatDate(r.DataVenda)}</td>
+                        <td>${r.Cliente || '-'}</td>
+                        <td>${r.FormaPagamento || '-'}</td>
+                        <td style="font-weight: 600; color: var(--success);">${formatCurrency(r.TotalFinal)}</td>
+                        <td><span class="status-badge ${r.Status === 'Concluída' ? 'success' : 'danger'}">${r.Status}</span></td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderCategorias(data, stats) {
+            document.getElementById('cat-custo').innerText = formatCurrency(stats.totalCusto);
+            document.getElementById('cat-faturamento').innerText = formatCurrency(stats.totalFaturamento);
+            document.getElementById('cat-lucro').innerText = formatCurrency(stats.totalLucro);
+
+            let hojeMaoDeObra = 0;
+            let hojeTelas = 0;
+            const dataHojeLocal = new Date().toLocaleDateString('pt-BR');
+
+            const tbody = document.getElementById('tbody-categorias');
+            tbody.innerHTML = '';
+            data.forEach(r => {
+                const rowDate = r.Data ? new Date(r.Data).toLocaleDateString('pt-BR') : '';
+                
+                if (rowDate === dataHojeLocal) {
+                    if (r.Categoria === 'Mão de Obra / Serviços (OS)') {
+                        hojeMaoDeObra += r.Faturamento || 0;
+                    }
+                    if (r.Categoria && r.Categoria.toLowerCase().includes('tela')) {
+                        hojeTelas += r.Faturamento || 0;
+                    }
+                }
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${formatDate(r.Data)}</td>
+                        <td style="font-weight: 500;">${r.Categoria}</td>
+                        <td>${r.Descricao || '-'}</td>
+                        <td style="color: var(--danger);">${formatCurrency(r.Custo)}</td>
+                        <td style="color: var(--success); font-weight: 600;">${formatCurrency(r.Faturamento)}</td>
+                        <td style="color: var(--primary); font-weight: 600;">${formatCurrency(r.Lucro)}</td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('cat-hoje-maodeobra').innerText = formatCurrency(hojeMaoDeObra);
+            document.getElementById('cat-hoje-telas').innerText = formatCurrency(hojeTelas);
+        }
+
+        function renderCustos(data, stats) {
+            document.getElementById('custos-pecas').innerText = formatCurrency(stats.pecas);
+            document.getElementById('custos-fat').innerText = formatCurrency(stats.maoObra);
+            document.getElementById('custos-lucro').innerText = formatCurrency(stats.lucro);
+
+            const tbody = document.getElementById('tbody-custos');
+            tbody.innerHTML = '';
+            data.forEach(r => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="font-weight: 600;">${r.NumeroOS}</td>
+                        <td>${formatDate(r.DataFechamento)}</td>
+                        <td>${r.PecasUsadas || '-'}</td>
+                        <td style="color: var(--danger);">${formatCurrency(r.CustoPecas)}</td>
+                        <td style="color: var(--success);">${formatCurrency(r.MaoObra)}</td>
+                        <td style="font-weight: 600; color: var(--primary);">${formatCurrency(r.LucroLiquido)}</td>
+                        <td>${r.Tecnico || '-'}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderFinanceiro(data, stats) {
+            document.getElementById('fin-entradas').innerText = formatCurrency(stats.entradas);
+            document.getElementById('fin-saidas').innerText = formatCurrency(stats.saidas);
+            document.getElementById('fin-saldo').innerText = formatCurrency(stats.saldo);
+
+            const tbody = document.getElementById('tbody-financeiro');
+            tbody.innerHTML = '';
+            data.forEach(r => {
+                const isEntrada = r.Tipo === 'Entrada';
+                tbody.innerHTML += `
+                    <tr>
+                        <td><span class="status-badge ${isEntrada ? 'success' : 'danger'}">${r.Tipo}</span></td>
+                        <td>${formatDate(r.Data)}</td>
+                        <td>${r.Descricao || '-'}</td>
+                        <td>${r.FormaPagamento || '-'}</td>
+                        <td style="font-weight: 600; color: var(--${isEntrada ? 'success' : 'danger'});">${isEntrada ? '+' : '-'} ${formatCurrency(r.Valor)}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderAuditoria(data, stats) {
+            document.getElementById('audit-total').innerText = stats.total;
+            const tbody = document.getElementById('tbody-auditoria');
+            tbody.innerHTML = '';
+            data.forEach(r => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${formatDate(r.DataHora)}</td>
+                        <td style="font-weight: 500;">${r.Acao}</td>
+                        <td>${r.Modulo}</td>
+                        <td style="color: var(--text-muted); font-size: 13px;">${r.Detalhes || '-'}</td>
+                    </tr>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>
+

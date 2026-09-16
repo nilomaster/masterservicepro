@@ -1,0 +1,187 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifica��o</title>
+    <style>
+        :root {
+            --bg-body: #1a1d24;
+            --bg-card: #232732;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --success: #10b981;
+            --success-hover: #059669;
+            --warning: #eab308;
+            --border: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 450px;
+            padding: 40px 30px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+
+        .icon-success { color: var(--success); }
+        .icon-error { color: var(--danger); }
+        .icon-warning { color: var(--warning); }
+
+        h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        p.message {
+            font-size: 16px;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-cancel {
+            background: var(--bg-body);
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+        }
+
+        .btn-cancel:hover {
+            background: #2a303c;
+            color: var(--text-main);
+        }
+
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: var(--danger-hover); }
+
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: var(--success-hover); }
+        
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="iconBox" class="icon icon-success">?</div>
+        <h2 id="lblTitle">Sucesso</h2>
+        <p id="lblMessage" class="message">Opera��o realizada com sucesso!</p>
+
+        <div class="actions" id="actionsBox">
+            <!-- Buttons will be dynamically loaded -->
+        </div>
+    </div>
+
+    <script>
+        let mode = "";
+
+        // Receber dados do C#
+        window.chrome.webview.addEventListener('message', event => {
+            const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+            if (data.action === "LOAD_DATA") {
+                mode = data.type; // "Success", "Error", "Confirm"
+                
+                document.getElementById('lblTitle').innerText = data.title;
+                document.getElementById('lblMessage').innerText = data.message;
+                
+                const iconBox = document.getElementById('iconBox');
+                const actionsBox = document.getElementById('actionsBox');
+                
+                if (mode === "Success") {
+                    iconBox.innerText = "?";
+                    iconBox.className = "icon icon-success";
+                    actionsBox.innerHTML = '<button id="btnOk" class="btn btn-success">OK (ENTER)</button>';
+                } else if (mode === "Error") {
+                    iconBox.innerText = "?";
+                    iconBox.className = "icon icon-error";
+                    actionsBox.innerHTML = '<button id="btnOk" class="btn btn-danger">OK (ENTER)</button>';
+                } else if (mode === "Confirm") {
+                    iconBox.innerText = "??";
+                    iconBox.className = "icon icon-warning";
+                    actionsBox.innerHTML = `
+                        <button id="btnCancel" class="btn btn-cancel">N�O (ESC)</button>
+                        <button id="btnOk" class="btn btn-primary">SIM (ENTER)</button>
+                    `;
+                    
+                    document.getElementById('btnCancel').addEventListener('click', () => {
+                        window.chrome.webview.postMessage({ action: "CANCEL" });
+                    });
+                }
+                
+                // Add event listeners for dynamic buttons
+                const btnOk = document.getElementById('btnOk');
+                if (btnOk) {
+                    btnOk.addEventListener('click', () => {
+                        window.chrome.webview.postMessage({ action: "OK" });
+                    });
+                    btnOk.focus();
+                }
+            }
+        });
+
+        // Global key events
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                window.chrome.webview.postMessage({ action: "OK" });
+            } else if (e.key === 'Escape') {
+                if (mode === "Confirm") {
+                    window.chrome.webview.postMessage({ action: "CANCEL" });
+                } else {
+                    window.chrome.webview.postMessage({ action: "OK" }); // OK closes it on success/error too
+                }
+            }
+        });
+
+    </script>
+</body>
+</html>
