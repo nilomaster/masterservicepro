@@ -25,7 +25,7 @@ namespace MasterServicePro
             }
             catch { }
 
-            // Verifica conexão com o banco de dados antes de iniciar o aplicativo
+            // Verifica conexao com o banco de dados antes de iniciar o aplicativo
             try
             {
                 using (var conn = new MasterServicePro.Utils.DbConnection().GetConnection())
@@ -35,8 +35,28 @@ namespace MasterServicePro
             }
             catch (Exception)
             {
-                MessageBox.Show("Conexão com banco de dados falhou!!", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Conexao com banco de dados falhou!!", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return; // Sai do aplicativo sem tentar abrir o login
+            }
+
+            // Validacao de Licenca e Bloqueio Automatico
+            try
+            {
+                var licResult = MasterServicePro.Services.LicenseService.CheckLicenseAsync().GetAwaiter().GetResult();
+                if (!licResult.Success || licResult.Status != "active")
+                {
+                    using (var frmLic = new Forms.FrmLicencaWeb(licResult.Chave, licResult.Status == "expired", licResult.VencimentoBr))
+                    {
+                        if (frmLic.ShowDialog() != DialogResult.OK)
+                        {
+                            return; // Encerra o aplicativo se a licenca nao for liberada
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Falha ao checar licenca do sistema: " + ex.Message, "Licenciamento", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
 
             using (var login = new Forms.FrmLoginWeb())
