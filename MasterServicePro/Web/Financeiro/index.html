@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fluxo de Caixa / Financeiro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-app: #1A1D24;
+            --bg-card: #222630;
+            --bg-card-hover: #2A2F3B;
+            --bg-sidebar: #1E2129;
+            --element-border: #333845;
+            --primary: #6366F1;
+            --primary-hover: #4F46E5;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --text-title: #F8FAFC;
+            --text-body: #CBD5E1;
+            --text-muted: #94A3B8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-app); color: var(--text-body); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+        /* HEADER */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 24px 32px; background-color: var(--bg-card); border-bottom: 1px solid var(--element-border); }
+        .title-area h1 { color: var(--text-title); font-size: 24px; font-weight: 600; }
+        .title-area p { color: var(--warning); font-size: 14px; font-weight: 600; margin-top: 4px; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background-color: rgba(245, 158, 11, 0.1); border-radius: 6px; }
+
+        .header-actions { display: flex; gap: 12px; }
+        .btn { padding: 10px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .btn-success { background-color: var(--success); color: white; }
+        .btn-success:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-warning { background-color: var(--warning); color: white; }
+        .btn-warning:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-danger { background-color: var(--danger); color: white; }
+        .btn-danger:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-secondary { background-color: var(--bg-sidebar); color: var(--text-title); border: 1px solid var(--element-border); }
+        .btn-secondary:hover { background-color: var(--bg-card-hover); }
+        .btn-primary { background-color: var(--primary); color: white; }
+
+        /* CONTENT */
+        .content { flex: 1; padding: 24px 32px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; }
+
+        /* STATS GRID */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        .stat-card { background-color: var(--bg-card); border: 1px solid var(--element-border); border-radius: 12px; padding: 20px; position: relative; overflow: hidden; }
+        .stat-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background-color: var(--primary); }
+        .stat-card.success::before { background-color: var(--success); }
+        .stat-card.danger::before { background-color: var(--danger); }
+        .stat-card.warning::before { background-color: var(--warning); }
+        .stat-card.pix::before { background-color: #32BCAD; }
+
+        .stat-title { color: var(--text-muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .stat-value { color: var(--text-title); font-size: 24px; font-weight: 700; }
+        .stat-card.success .stat-value { color: var(--success); }
+        .stat-card.danger .stat-value { color: var(--danger); }
+        .stat-card.warning .stat-value { color: var(--warning); }
+
+        /* CHARTS SECTION */
+        .charts-container { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; height: 300px; min-height: 300px; flex-shrink: 0; }
+        .chart-card { background-color: var(--bg-card); border: 1px solid var(--element-border); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; }
+        .chart-header { margin-bottom: 16px; color: var(--text-title); font-size: 16px; font-weight: 600; }
+        .chart-body { flex: 1; position: relative; }
+
+        /* TABLE */
+        .table-container { background-color: var(--bg-card); border-radius: 12px; border: 1px solid var(--element-border); overflow: hidden; }
+        .table-toolbar { padding: 16px 20px; display: flex; gap: 16px; border-bottom: 1px solid var(--element-border); align-items: center; }
+        .table-toolbar input { background-color: var(--bg-sidebar); border: 1px solid var(--element-border); color: var(--text-title); padding: 8px 12px; border-radius: 6px; font-size: 14px; }
+        
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background-color: var(--bg-sidebar); color: var(--text-muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; padding: 16px 20px; border-bottom: 1px solid var(--element-border); }
+        td { padding: 16px 20px; font-size: 14px; border-bottom: 1px solid var(--element-border); color: var(--text-body); }
+        tbody tr:hover { background-color: var(--bg-card-hover); }
+
+        .type-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+        .type-badge.entrada { background-color: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .type-badge.saida { background-color: rgba(239, 68, 68, 0.1); color: var(--danger); }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-app); }
+        ::-webkit-scrollbar-thumb { background: var(--element-border); border-radius: 4px; }
+
+        /* Responsividade 1366x768 (Laptops) */
+        @media (max-width: 1400px), (max-height: 800px) {
+            .header { padding: 15px 20px; }
+            .content { padding: 15px 20px; gap: 15px; }
+            .header h1 { font-size: 20px; }
+            .btn { padding: 8px 12px; font-size: 12px; }
+            .stat-card { padding: 15px; }
+            .stat-title { font-size: 11px; margin-bottom: 5px; }
+            .stat-value { font-size: 20px; }
+            .charts-container { height: 250px; min-height: 250px; gap: 15px; flex-shrink: 0; }
+            .chart-card { padding: 15px; }
+            .chart-header { margin-bottom: 10px; font-size: 14px; }
+            .table-toolbar { padding: 12px 15px; }
+            th { padding: 12px 15px; font-size: 11px; }
+            td { padding: 12px 15px; font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="title-area">
+            <h1>Fluxo de Caixa / Financeiro</h1>
+            <p id="status-caixa"><i class="ri-lock-unlock-line"></i> CONTAS A RECEBER</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-success" onclick="action('add_dinheiro')" style="display: none;"><i class="ri-add-line"></i> ADD DINHEIRO</button>
+            <button class="btn btn-warning" onclick="action('retirar_dinheiro')" style="display: none;"><i class="ri-subtract-line"></i> RETIRAR DINHEIRO</button>
+            <button class="btn btn-secondary" onclick="action('historico')" style="display: none;"><i class="ri-history-line"></i> HISTÓRICO</button>
+            <button class="btn btn-success" onclick="action('abrir_caixa')" id="btn-abrir" style="display: none;"><i class="ri-door-open-line"></i> ABRIR CAIXA</button>
+            <button class="btn btn-danger" onclick="action('fechar_caixa')" id="btn-fechar" style="display: none;"><i class="ri-door-lock-line"></i> FECHAR CAIXA</button>
+        </div>
+    </div>
+
+    <div class="content">
+        <!-- ROW 1: RESUMO DO CAIXA ATUAL -->
+        <div class="stats-grid">
+            <div class="stat-card warning">
+                <div class="stat-title">SALDO INICIAL (ABERTO)</div>
+                <div class="stat-value" id="val-inicial">R$ 0,00</div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-title">ENTRADAS (VENDAS/OS)</div>
+                <div class="stat-value" id="val-entradas">R$ 0,00</div>
+            </div>
+            <div class="stat-card danger">
+                <div class="stat-title">SAÍDAS (SANGRIAS/DESPESAS)</div>
+                <div class="stat-value" id="val-saidas">R$ 0,00</div>
+            </div>
+            <div class="stat-card primary">
+                <div class="stat-title">DINHEIRO NO CAIXA</div>
+                <div class="stat-value" id="val-dinheiro-caixa">R$ 0,00</div>
+            </div>
+        </div>
+
+        <!-- ROW 2: FORMAS DE PAGAMENTO -->
+        <div class="stats-grid">
+            <div class="stat-card pix">
+                <div class="stat-title">ENTRADAS PIX</div>
+                <div class="stat-value" id="val-pix">R$ 0,00</div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-title">ENTRADAS DINHEIRO</div>
+                <div class="stat-value" id="val-dinheiro">R$ 0,00</div>
+            </div>
+            <div class="stat-card warning">
+                <div class="stat-title">ENTRADAS CRÉDITO</div>
+                <div class="stat-value" id="val-credito">R$ 0,00</div>
+            </div>
+            <div class="stat-card primary">
+                <div class="stat-title">ENTRADAS DÉBITO</div>
+                <div class="stat-value" id="val-debito">R$ 0,00</div>
+            </div>
+        </div>
+
+        <!-- CHARTS -->
+        <div class="charts-container">
+            <div class="chart-card">
+                <div class="chart-header">Faturamento - Últimos 7 Dias</div>
+                <div class="chart-body">
+                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
+                        <canvas id="lineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-header">Faturamento por Meio de Pagamento</div>
+                <div class="chart-body">
+                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; justify-content: center;">
+                        <canvas id="doughnutChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- EXTRACT -->
+        <div class="table-container">
+            <div class="table-toolbar">
+                <span style="font-weight: 600; color: var(--text-title);">Extrato Financeiro do Dia</span>
+                <input type="date" id="dtFiltro" onchange="action('filtrar_extrato', this.value)" style="margin-left: auto;">
+                <button class="btn btn-secondary" onclick="action('filtrar_extrato', document.getElementById('dtFiltro').value)"><i class="ri-search-line"></i> Filtrar</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Categoria</th>
+                        <th>Valor</th>
+                        <th>Pagamento</th>
+                        <th>Descrição</th>
+                        <th>Data/Hora</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-extrato">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('dtFiltro').valueAsDate = new Date();
+
+        let lineChartInstance = null;
+        let doughnutChartInstance = null;
+
+        function formatCurrency(val) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
+        }
+
+        function formatDate(str) {
+            if (!str) return '-';
+            try { return new Date(str).toLocaleString('pt-BR'); } catch(e) { return str; }
+        }
+
+        function initCharts() {
+            Chart.defaults.color = '#94A3B8';
+            Chart.defaults.font.family = 'Inter';
+
+            const ctxLine = document.getElementById('lineChart').getContext('2d');
+            lineChartInstance = new Chart(ctxLine, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Faturamento',
+                        data: [],
+                        borderColor: '#6366F1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#6366F1',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: '#333845' }, beginAtZero: true },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            const ctxDoughnut = document.getElementById('doughnutChart').getContext('2d');
+            doughnutChartInstance = new Chart(ctxDoughnut, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pix', 'Dinheiro', 'Cartão', 'Outros'],
+                    datasets: [{
+                        data: [0, 0, 0, 0],
+                        backgroundColor: ['#32BCAD', '#10B981', '#F59E0B', '#6366F1'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 12, padding: 15 } }
+                    }
+                }
+            });
+        }
+
+        initCharts();
+
+        if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.addEventListener('message', event => {
+                try {
+                    const msg = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                    
+                    if (msg.action === 'load_stats') renderStats(msg.data);
+                    if (msg.action === 'load_extrato') renderExtrato(msg.data);
+                    if (msg.action === 'load_charts') renderCharts(msg.data);
+
+                } catch(e) { console.error(e); }
+            });
+        }
+
+        function renderStats(d) {
+            const statusLabel = document.getElementById('status-caixa');
+            const btnAbrir = document.getElementById('btn-abrir');
+            const btnFechar = document.getElementById('btn-fechar');
+            const btnAdd = document.querySelector('button[onclick="action(\'add_dinheiro\')"]');
+            const btnRetirar = document.querySelector('button[onclick="action(\'retirar_dinheiro\')"]');
+            const btnHistorico = document.querySelector('button[onclick="action(\'historico\')"]');
+
+            // Botões de entrada/saída ficam visíveis para todos se o caixa estiver aberto
+            if (d.caixaAberto) {
+                if (btnAdd) btnAdd.style.display = 'flex';
+                if (btnRetirar) btnRetirar.style.display = 'flex';
+            } else {
+                if (btnAdd) btnAdd.style.display = 'none';
+                if (btnRetirar) btnRetirar.style.display = 'none';
+            }
+
+            // Histórico fica restrito a administradores
+            if (!d.isAdmin) {
+                if (btnHistorico) btnHistorico.style.display = 'none';
+            } else {
+                if (btnHistorico) btnHistorico.style.display = 'flex';
+            }
+
+            if (d.caixaAberto) {
+                statusLabel.innerHTML = `<i class="ri-lock-unlock-line"></i> CAIXA ABERTO (#${d.caixaId})`;
+                statusLabel.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+                statusLabel.style.color = 'var(--success)';
+                btnAbrir.style.display = 'none';
+                btnFechar.style.display = d.isAdmin ? 'flex' : 'none';
+            } else {
+                statusLabel.innerHTML = `<i class="ri-lock-line"></i> CAIXA FECHADO`;
+                statusLabel.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                statusLabel.style.color = 'var(--danger)';
+                btnAbrir.style.display = 'flex';
+                btnFechar.style.display = 'none';
+            }
+
+            document.getElementById('val-inicial').innerText = formatCurrency(d.saldoInicial);
+            document.getElementById('val-entradas').innerText = formatCurrency(d.totalEntradas);
+            document.getElementById('val-saidas').innerText = formatCurrency(d.totalSaidas);
+            document.getElementById('val-dinheiro-caixa').innerText = formatCurrency(d.dinheiroEmCaixa);
+            
+            document.getElementById('val-pix').innerText = formatCurrency(d.entradasPix);
+            document.getElementById('val-dinheiro').innerText = formatCurrency(d.entradasDinheiro);
+            document.getElementById('val-credito').innerText = formatCurrency(d.entradasCredito);
+            document.getElementById('val-debito').innerText = formatCurrency(d.entradasDebito);
+        }
+
+        function renderExtrato(data) {
+            const tbody = document.getElementById('tbody-extrato');
+            
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">Nenhuma movimentação neste dia.</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            data.forEach(r => {
+                const isEntrada = r.Tipo === 'Entrada';
+                html += `
+                    <tr>
+                        <td><span class="type-badge ${isEntrada ? 'entrada' : 'saida'}"><i class="${isEntrada ? 'ri-arrow-up-line' : 'ri-arrow-down-line'}"></i> ${r.Tipo}</span></td>
+                        <td style="font-weight: 500;">${r.Categoria || '-'}</td>
+                        <td style="font-weight: 600; color: var(--${isEntrada ? 'success' : 'danger'});">${isEntrada ? '+' : '-'} ${formatCurrency(r.Valor)}</td>
+                        <td>${r.FormaPagamento || '-'}</td>
+                        <td style="color: var(--text-muted);">${r.Descricao || '-'}</td>
+                        <td>${formatDate(r.Data)}</td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function renderCharts(d) {
+            if (lineChartInstance && d.lineLabels) {
+                lineChartInstance.data.labels = d.lineLabels;
+                lineChartInstance.data.datasets[0].data = d.lineData;
+                lineChartInstance.update();
+            }
+
+            if (doughnutChartInstance && d.doughnutData) {
+                doughnutChartInstance.data.datasets[0].data = d.doughnutData;
+                doughnutChartInstance.update();
+            }
+        }
+
+        function action(type, payload = null) {
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage({ action: type, payload: payload });
+            }
+        }
+    </script>
+</body>
+</html>
+

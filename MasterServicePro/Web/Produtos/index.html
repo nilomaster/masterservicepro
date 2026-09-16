@@ -1,0 +1,490 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciamento de Produtos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-app: #1A1D24;
+            --bg-card: #222630;
+            --bg-card-hover: #2A2F3B;
+            --bg-sidebar: #1E2129;
+            --element-border: #333845;
+            --primary: #6366F1;
+            --primary-hover: #4F46E5;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --text-title: #F8FAFC;
+            --text-body: #CBD5E1;
+            --text-muted: #94A3B8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-app);
+            color: var(--text-body);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* HEADER */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 32px;
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--element-border);
+        }
+
+        .title-area h1 {
+            color: var(--text-title);
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .title-area p {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary { background-color: var(--primary); color: white; box-shadow: 0 4px 6px rgba(99, 102, 241, 0.2); }
+        .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+        .btn-secondary { background-color: var(--bg-sidebar); color: var(--text-title); border: 1px solid var(--element-border); }
+        .btn-secondary:hover { background-color: var(--bg-card-hover); }
+
+        .layout-main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR CATEGORIAS */
+        .categorias-sidebar {
+            width: 260px;
+            background-color: var(--bg-card);
+            border-right: 1px solid var(--element-border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .categorias-header {
+            padding: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--element-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .categorias-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .categoria-item {
+            padding: 10px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 4px;
+            font-size: 14px;
+            color: var(--text-body);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+
+        .categoria-item:hover {
+            background-color: var(--bg-card-hover);
+            color: var(--text-title);
+        }
+
+        .categoria-item.active {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        /* CONTENT AREA */
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .toolbar {
+            padding: 20px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+        .search-box i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 18px;
+        }
+        .search-box input {
+            width: 100%;
+            background-color: var(--bg-card);
+            border: 1px solid var(--element-border);
+            color: var(--text-title);
+            padding: 12px 16px 12px 42px;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
+        /* TABLE */
+        .table-container {
+            margin: 0 32px 32px 32px;
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--element-border);
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th {
+            background-color: var(--bg-sidebar);
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 12px;
+            text-transform: uppercase;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--element-border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        td {
+            padding: 16px 20px;
+            font-size: 14px;
+            border-bottom: 1px solid var(--element-border);
+            color: var(--text-body);
+        }
+        tbody tr:hover { background-color: var(--bg-card-hover); }
+
+        .prod-name {
+            color: var(--text-title);
+            font-weight: 500;
+        }
+
+        .prod-code {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .estoque-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .estoque-ok { background-color: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .estoque-baixo { background-color: rgba(245, 158, 11, 0.1); color: var(--warning); }
+        .estoque-zerado { background-color: rgba(239, 68, 68, 0.1); color: var(--danger); }
+
+        .actions-cell {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: 1px solid var(--element-border);
+            background-color: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .btn-icon:hover { color: var(--text-title); background-color: var(--element-border); }
+        .btn-icon.edit:hover { color: var(--primary); border-color: var(--primary); }
+        .btn-icon.delete:hover { color: var(--danger); border-color: var(--danger); }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-app); }
+        ::-webkit-scrollbar-thumb { background: var(--element-border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+        .empty-state i { font-size: 48px; color: var(--element-border); margin-bottom: 16px; }
+
+        /* Responsividade 1366x768 (Laptops) */
+        @media (max-width: 1400px), (max-height: 800px) {
+            body { padding: 15px 20px; }
+            .header { padding-bottom: 15px; margin-bottom: 15px; }
+            .header h1 { font-size: 20px; }
+            .toolbar { padding: 15px 20px; }
+            .categorias-sidebar { width: 220px; }
+            .table-container { margin: 0 20px 20px 20px; }
+            th { padding: 12px 15px; font-size: 11px; }
+            td { padding: 12px 15px; font-size: 13px; }
+            .btn { padding: 8px 16px; font-size: 13px; }
+            .search-box input { padding: 10px 16px 10px 42px; font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="title-area">
+            <h1>Produtos & Peças</h1>
+            <p id="prod-count">Carregando estoque...</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-secondary" onclick="action('entrada_estoque')">
+                <i class="ri-inbox-archive-line"></i> Entrada de Estoque
+            </button>
+            <button class="btn btn-primary" onclick="action('novo_produto')">
+                <i class="ri-add-box-line"></i> Novo Produto
+            </button>
+        </div>
+    </div>
+
+    <div class="layout-main">
+        <div class="categorias-sidebar">
+            <div class="categorias-header">
+                Categorias
+                <button class="btn-icon" style="width: 24px; height: 24px; border: none;" onclick="action('nova_categoria')" title="Nova Categoria">
+                    <i class="ri-add-line"></i>
+                </button>
+            </div>
+            <div class="categorias-list" id="categorias-list">
+                <!-- rendered via js -->
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="toolbar">
+                <div class="search-box">
+                    <i class="ri-search-line"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar por código, nome ou marca..." onkeyup="filterData()">
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Modelo / Marca</th>
+                            <th>Valor Venda</th>
+                            <th>Estoque</th>
+                            <th style="text-align: right;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="produtos-tbody">
+                        <!-- rendered via js -->
+                    </tbody>
+                </table>
+                <div id="empty-state" class="empty-state" style="display: none;">
+                    <i class="ri-box-3-line"></i>
+                    <h3>Nenhum produto encontrado</h3>
+                    <p>Selecione outra categoria ou ajuste sua busca.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let produtosData = [];
+        let categoriasData = [];
+        let selectedCategoriaId = 0;
+
+        if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.addEventListener('message', event => {
+                const msg = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                if (msg.action === 'load_data') {
+                    produtosData = msg.produtos;
+                    categoriasData = msg.categorias;
+                    renderCategorias();
+                    filterData();
+                }
+            });
+            window.chrome.webview.postMessage({ action: 'request_data' });
+        } else {
+            // Mock data
+            categoriasData = [
+                { Id: 0, Nome: "Todos os Produtos" },
+                { Id: 1, Nome: "Peças Mecânicas" },
+                { Id: 2, Nome: "Acessórios" }
+            ];
+            produtosData = [
+                { Id: 1, Nome: "Amortecedor Dianteiro", CodigoInterno: "AM-100", CodigoBarras: "789123456", Marca: "Monroe", Modelo: "Gol G5", PrecoVenda: 250.00, Estoque: 12, EstoqueMinimo: 5, IdCategoria: 1 },
+                { Id: 2, Nome: "Filtro de Óleo", CodigoInterno: "FO-200", CodigoBarras: "789987654", Marca: "Tecfil", Modelo: "Universal", PrecoVenda: 35.00, Estoque: 3, EstoqueMinimo: 10, IdCategoria: 1 },
+                { Id: 3, Nome: "Palheta Limpador", CodigoInterno: "PL-50", CodigoBarras: "789111222", Marca: "Bosch", Modelo: "22 polegadas", PrecoVenda: 45.00, Estoque: 0, EstoqueMinimo: 5, IdCategoria: 2 }
+            ];
+            renderCategorias();
+            filterData();
+        }
+
+        function formatCurrency(val) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+        }
+
+        function selectCategoria(id) {
+            selectedCategoriaId = id;
+            renderCategorias();
+            filterData();
+        }
+
+        function renderCategorias() {
+            const list = document.getElementById('categorias-list');
+            list.innerHTML = '';
+            categoriasData.forEach(c => {
+                const div = document.createElement('div');
+                div.className = `categoria-item ${selectedCategoriaId === c.Id ? 'active' : ''}`;
+                div.innerHTML = `<i class="ri-${c.Id === 0 ? 'apps-2-line' : 'folder-2-line'}"></i> ${c.Nome}`;
+                div.onclick = () => selectCategoria(c.Id);
+                list.appendChild(div);
+            });
+        }
+
+        function filterData() {
+            const termo = document.getElementById('searchInput').value.toLowerCase();
+            
+            let filtered = produtosData;
+            
+            if (selectedCategoriaId !== 0) {
+                filtered = filtered.filter(p => p.IdCategoria === selectedCategoriaId);
+            }
+
+            if (termo) {
+                filtered = filtered.filter(p => 
+                    (p.Nome && p.Nome.toLowerCase().includes(termo)) ||
+                    (p.CodigoInterno && p.CodigoInterno.toLowerCase().includes(termo)) ||
+                    (p.CodigoBarras && p.CodigoBarras.includes(termo)) ||
+                    (p.Marca && p.Marca.toLowerCase().includes(termo))
+                );
+            }
+
+            renderTable(filtered);
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('produtos-tbody');
+            const emptyState = document.getElementById('empty-state');
+            const countLabel = document.getElementById('prod-count');
+            
+            tbody.innerHTML = '';
+            
+            if (!data || data.length === 0) {
+                emptyState.style.display = 'block';
+                countLabel.innerText = `Nenhum produto listado.`;
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            countLabel.innerText = `${data.length} item(s) no catálogo`;
+
+            data.forEach(p => {
+                const tr = document.createElement('tr');
+                
+                let estoqueClass = "estoque-ok";
+                if (p.Estoque <= 0) estoqueClass = "estoque-zerado";
+                else if (p.Estoque <= p.EstoqueMinimo) estoqueClass = "estoque-baixo";
+
+                tr.innerHTML = `
+                    <td>
+                        <div class="prod-name">${p.Nome}</div>
+                        <div class="prod-code"><i class="ri-barcode-box-line"></i> ${p.CodigoInterno || p.CodigoBarras || 'S/ Código'}</div>
+                    </td>
+                    <td>
+                        <div style="font-weight: 500;">${p.Modelo || '-'}</div>
+                        <div style="color: var(--text-muted); font-size: 12px;">${p.Marca || '-'}</div>
+                    </td>
+                    <td style="font-weight: 600; color: var(--success);">${formatCurrency(p.PrecoVenda)}</td>
+                    <td>
+                        <span class="estoque-badge ${estoqueClass}">${p.Estoque} un</span>
+                    </td>
+                    <td>
+                        <div class="actions-cell">
+                            <button class="btn-icon edit" title="Editar" onclick="action('editar', ${p.Id})">
+                                <i class="ri-pencil-line"></i>
+                            </button>
+                            <button class="btn-icon delete" title="Desativar" onclick="action('excluir', ${p.Id}, '${p.Nome}')">
+                                <i class="ri-delete-bin-line"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function action(type, id, nome) {
+            if (type === 'excluir') {
+                if (!confirm(`Tem certeza que deseja desativar o produto ${nome}?`)) return;
+            }
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage({ action: type, id: id });
+            } else {
+                console.log(`Ação: ${type}, ID: ${id}`);
+            }
+        }
+    </script>
+</body>
+</html>
+

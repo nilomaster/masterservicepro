@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Manutenção de OS</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+</head>
+<body>
+    <div class="container">
+        <!-- Top Toolbar -->
+        <div class="header-actions">
+            <h1>Ordem de Serviço #<span id="lblOsId">Nova</span></h1>
+            <div class="header-buttons">
+                <button class="btn btn-warning" onclick="sendAction('OPEN_CHECKLIST')">📋 Checklist</button>
+                <button class="btn btn-primary" onclick="sendAction('PRINT_BUDGET')" id="btnPrint" style="display:none;">🖨️ Orçamento</button>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <!-- Left Column: Inputs -->
+            <div class="left-col">
+                <div class="form-group">
+                    <label>Cliente / Empresa</label>
+                    <div class="input-group">
+                        <input type="text" id="cboCliente" list="clientesList" style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid var(--border); background-color: var(--input-bg); color: var(--text-color);" placeholder="Selecione ou digite um nome...">
+                        <datalist id="clientesList"></datalist>
+                        <button class="btn-icon" onclick="sendAction('ADD_CLIENT')" title="Novo Cliente">+</button>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="form-group half">
+                        <label>Marca/Aparelho</label>
+                        <input type="text" id="txtMarca">
+                    </div>
+                    <div class="form-group half">
+                        <label>Modelo</label>
+                        <input type="text" id="txtModelo">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="form-group half">
+                        <label>IMEI / S.N.</label>
+                        <input type="text" id="txtImei">
+                    </div>
+                    <div class="form-group half">
+                        <label>Cor</label>
+                        <input type="text" id="txtCor">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Problema Relatado (Pelo Cliente)</label>
+                    <textarea id="txtDefeito" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Laudo Técnico (Diagnóstico)</label>
+                    <textarea id="txtLaudo" rows="3"></textarea>
+                </div>
+
+                <div class="row totals-row">
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="cboStatus">
+                            <option value="Aberto">Aberto</option>
+                            <option value="Em Andamento">Em Andamento</option>
+                            <option value="Finalizado">Finalizado</option>
+                            <option value="Cancelado">Cancelado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Val. Custo (Peças)</label>
+                        <input type="text" id="txtValorPecas" value="0,00" class="money-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Val. Cobrado (Total)</label>
+                        <input type="text" id="txtValorServico" value="0,00" class="money-input">
+                    </div>
+                    <div class="form-group total-group">
+                        <label>LUCRO (R$)</label>
+                        <div class="lucro-display" id="lblLucro">0,00</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Parts Grid -->
+            <div class="right-col">
+            <div class="parts-header">
+                <h3>Peças / Serviços Usados</h3>
+                <div class="parts-actions" style="display: flex; gap: 10px;">
+                    <button class="btn btn-warning" style="display:flex; align-items:center; gap:5px" onclick="openCustoModal()">💰 Custo Terceirizado</button>
+                    <button class="btn btn-secondary" onclick="sendAction('ADD_PART')">+ Adicionar Peça</button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Descrição</th>
+                            <th style="width:50px">Qtd</th>
+                            <th style="width:80px">SubTotal</th>
+                            <th style="width:80px">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="partsBody">
+                        <!-- Items go here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="form-group mt-2">
+                <label>Técnico Responsável</label>
+                <select id="cboTecnico"></select>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-actions">
+        <button class="btn btn-danger" onclick="sendAction('CANCEL')">CANCELAR</button>
+        <button class="btn btn-success" onclick="saveOS()">SALVAR E SAIR</button>
+    </div>
+</div>
+
+<!-- Modal de Desconto -->
+<div id="discountModal" class="modal">
+    <div class="modal-content">
+        <h2 id="modalTitle">Aplicar Desconto</h2>
+        <p id="modalItemName" style="color: var(--text-secondary); margin-top: 5px; margin-bottom: 15px;"></p>
+        
+        <div class="form-group">
+            <label>Valor atual (R$)</label>
+            <input type="text" id="modalCurrentValue" readonly style="background: rgba(255,255,255,0.05); color: var(--warning); font-weight: bold; cursor: not-allowed;">
+        </div>
+        
+        <div class="form-group" style="margin-top: 15px;">
+            <label>Valor do desconto (R$)</label>
+            <input type="text" id="modalDiscountValue" class="money-input" value="0,00" autocomplete="off">
+        </div>
+        
+        <div class="modal-footer" style="margin-top: 25px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button class="btn btn-secondary" onclick="closeDiscountModal()">Cancelar</button>
+            <button class="btn btn-success" onclick="confirmDiscount()">Aplicar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Custo Adicional -->
+<div id="custoModal" class="modal">
+    <div class="modal-content">
+        <h2 id="modalCustoTitle">Registrar Custo Terceirizado</h2>
+        
+        <div class="form-group" style="margin-top: 15px;">
+            <label>Categoria do Serviço</label>
+            <select id="cboCustoCategoria" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); background-color: var(--input-bg); color: var(--text-color);">
+                <option value="Troca de FPC da Bateria">Troca de FPC da Bateria</option>
+                <option value="Troca de FPC da Tela">Troca de FPC da Tela</option>
+                <option value="Troca de FPC da Placa">Troca de FPC da Placa</option>
+                <option value="Troca de Conector de Carga">Troca de Conector de Carga</option>
+                <option value="Troca de Bolha dos Botões">Troca de Bolha dos Botões</option>
+                <option value="Reparo na CPU/MEMORIA">Reparo na CPU/MEMORIA</option>
+                <option value="Outro Reparo na Placa">Outro Reparo na Placa</option>
+            </select>
+        </div>
+        
+        <div class="form-group" style="margin-top: 15px;">
+            <label>Valor de Custo (R$)</label>
+            <input type="text" id="modalCustoValue" class="money-input" value="0,00" autocomplete="off" placeholder="Ex: 80,00">
+        </div>
+        
+        <div class="modal-footer" style="margin-top: 25px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button class="btn btn-secondary" onclick="closeCustoModal()">Cancelar</button>
+            <button class="btn btn-success" onclick="confirmCusto()">Adicionar Custo</button>
+        </div>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

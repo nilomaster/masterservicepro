@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contas a Receber</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <h1>Contas a Receber (Fiado / Crediário)</h1>
+                <p>Monitore as pendências dos clientes, filtre inadimplência e receba pagamentos vinculados ao caixa.</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn-neon btn-secondary" onclick="fechar()">FECHAR</button>
+            </div>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="cards-grid">
+            <div class="glass-card metric-card card-warning">
+                <div class="metric-title">A Receber (Pendente)</div>
+                <div class="metric-value" id="valPendente">R$ 0,00</div>
+            </div>
+            <div class="glass-card metric-card card-danger">
+                <div class="metric-title">Vencidas (Inadimplência)</div>
+                <div class="metric-value" id="valAtrasado">R$ 0,00</div>
+            </div>
+            <div class="glass-card metric-card card-success">
+                <div class="metric-title">Total Recebido (Baixado)</div>
+                <div class="metric-value" id="valRecebido">R$ 0,00</div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="main-grid">
+            <!-- Left Side (Filters & Table) -->
+            <div class="left-panel">
+                <div class="glass-card filters-card">
+                    <div class="filter-group">
+                        <label>Filtrar por Cliente:</label>
+                        <select id="cboCliente" onchange="applyFilters()">
+                            <option value="0">-- Todos os Clientes --</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Status:</label>
+                        <select id="cboStatus" onchange="applyFilters()">
+                            <option value="Todos">Todos</option>
+                            <option value="Pendente">A Receber (No prazo)</option>
+                            <option value="Atrasado">Vencido (Inadimplência)</option>
+                            <option value="Pago">Recebido (Baixado)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="glass-card table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Descrição</th>
+                                <th>Total (R$)</th>
+                                <th>Pago (R$)</th>
+                                <th>Restante (R$)</th>
+                                <th>Vencimento</th>
+                                <th>Status</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Rows will be injected here via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Right Side (Chart) -->
+            <div class="right-panel">
+                <div class="glass-card chart-container">
+                    <h3 class="chart-title">COMPOSIÇÃO DE CONTAS</h3>
+                    <div style="position: relative; height: 350px; width: 100%;">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

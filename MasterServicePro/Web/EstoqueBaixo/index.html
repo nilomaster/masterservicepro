@@ -1,0 +1,255 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Falta de Estoque</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-app: #1A1D24;
+            --bg-card: #222630;
+            --bg-card-hover: #2A2F3B;
+            --bg-sidebar: #1E2129;
+            --element-border: #333845;
+            --primary: #6366F1;
+            --primary-hover: #4F46E5;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --text-title: #F8FAFC;
+            --text-body: #CBD5E1;
+            --text-muted: #94A3B8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-app); color: var(--text-body); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+        /* HEADER */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 24px 32px; background-color: var(--bg-card); border-bottom: 1px solid var(--element-border); }
+        .title-area h1 { color: var(--text-title); font-size: 24px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .title-area h1 i { color: var(--warning); }
+        .title-area p { color: var(--text-muted); font-size: 14px; margin-top: 4px; }
+        .header-actions { display: flex; gap: 12px; }
+
+        .btn { padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+        .btn-secondary { background-color: var(--bg-sidebar); color: var(--text-title); border: 1px solid var(--element-border); }
+        .btn-secondary:hover { background-color: var(--bg-card-hover); }
+
+        /* TOOLBAR */
+        .toolbar { padding: 20px 32px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+        .search-box { position: relative; flex: 1; max-width: 400px; }
+        .search-box i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 18px; }
+        .search-box input { width: 100%; background-color: var(--bg-card); border: 1px solid var(--element-border); color: var(--text-title); padding: 12px 16px 12px 42px; border-radius: 8px; font-size: 14px; transition: all 0.2s; }
+        .search-box input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2); }
+
+        /* CONTENT */
+        .content { flex: 1; padding: 0 32px 32px 32px; overflow-y: auto; }
+        .table-container { background-color: var(--bg-card); border-radius: 12px; border: 1px solid var(--element-border); overflow: hidden; }
+
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background-color: var(--bg-sidebar); color: var(--text-muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; padding: 16px 20px; border-bottom: 1px solid var(--element-border); }
+        td { padding: 16px 20px; font-size: 14px; border-bottom: 1px solid var(--element-border); color: var(--text-body); }
+        tbody tr:hover { background-color: var(--bg-card-hover); cursor: pointer; }
+
+        .prod-name { color: var(--text-title); font-weight: 500; }
+        .prod-code { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+        
+        .estoque-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; display: inline-block; text-align: center; min-width: 40px; }
+        .estoque-baixo { background-color: rgba(245, 158, 11, 0.1); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.2); }
+        .estoque-zerado { background-color: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-app); }
+        ::-webkit-scrollbar-thumb { background: var(--element-border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+        .empty-state i { font-size: 48px; color: var(--success); margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="title-area">
+            <h1><i class="ri-alert-line"></i> Falta de Estoque / Alertas</h1>
+            <p id="prod-count">Carregando itens...</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-secondary" onclick="action('atualizar')">
+                <i class="ri-refresh-line"></i> Atualizar
+            </button>
+            <button class="btn btn-primary" onclick="action('editar_selecionado')" id="btnEditar" disabled style="opacity: 0.5;">
+                <i class="ri-pencil-line"></i> Editar / Abastecer
+            </button>
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <div class="search-box">
+            <i class="ri-search-line"></i>
+            <input type="text" id="searchInput" placeholder="Buscar por código, nome ou marca..." onkeyup="filterData()">
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 40px;"></th>
+                        <th>Produto</th>
+                        <th>Marca / Modelo</th>
+                        <th>Qtd. Atual</th>
+                        <th>Qtd. Mínima</th>
+                        <th>Valor Venda</th>
+                    </tr>
+                </thead>
+                <tbody id="produtos-tbody">
+                </tbody>
+            </table>
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <i class="ri-checkbox-circle-line"></i>
+                <h3>Tudo certo!</h3>
+                <p>Não há nenhum produto com estoque abaixo do mínimo.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let produtosData = [];
+        let selectedId = null;
+
+        if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.addEventListener('message', event => {
+                try {
+                    const msg = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                    if (msg.action === 'load_data') {
+                        produtosData = msg.data;
+                        selectedId = null;
+                        updateButtons();
+                        filterData();
+                    }
+                } catch(e) { console.error(e); }
+            });
+            window.chrome.webview.postMessage({ action: 'request_data' });
+        } else {
+            // Mock data
+            produtosData = [
+                { Id: 1, Nome: "Amortecedor Dianteiro", CodigoInterno: "AM-100", Marca: "Monroe", Modelo: "Gol G5", PrecoVenda: 250.00, Estoque: 0, EstoqueMinimo: 5 },
+                { Id: 2, Nome: "Filtro de Óleo", CodigoInterno: "FO-200", Marca: "Tecfil", Modelo: "Universal", PrecoVenda: 35.00, Estoque: 3, EstoqueMinimo: 10 }
+            ];
+            filterData();
+        }
+
+        function formatCurrency(val) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+        }
+
+        function selectItem(id) {
+            selectedId = id;
+            document.querySelectorAll('tbody tr').forEach(tr => tr.style.backgroundColor = '');
+            const selectedTr = document.getElementById(`tr-${id}`);
+            if (selectedTr) {
+                selectedTr.style.backgroundColor = 'rgba(99, 102, 241, 0.1)';
+            }
+            updateButtons();
+        }
+
+        function updateButtons() {
+            const btn = document.getElementById('btnEditar');
+            if (selectedId) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            } else {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+            }
+        }
+
+        function filterData() {
+            const termo = document.getElementById('searchInput').value.toLowerCase();
+            let filtered = produtosData;
+            
+            if (termo) {
+                filtered = filtered.filter(p => 
+                    (p.Nome && p.Nome.toLowerCase().includes(termo)) ||
+                    (p.CodigoInterno && p.CodigoInterno.toLowerCase().includes(termo)) ||
+                    (p.Marca && p.Marca.toLowerCase().includes(termo))
+                );
+            }
+            renderTable(filtered);
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('produtos-tbody');
+            const emptyState = document.getElementById('empty-state');
+            const countLabel = document.getElementById('prod-count');
+            
+            tbody.innerHTML = '';
+            
+            if (!data || data.length === 0) {
+                emptyState.style.display = 'block';
+                countLabel.innerText = `Nenhum item em falta.`;
+                document.querySelector('table').style.display = 'none';
+                return;
+            }
+
+            document.querySelector('table').style.display = 'table';
+            emptyState.style.display = 'none';
+            countLabel.innerText = `${data.length} item(s) precisando de reposição`;
+
+            data.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.id = `tr-${p.Id}`;
+                tr.onclick = () => selectItem(p.Id);
+                
+                let estoqueClass = "estoque-baixo";
+                if (p.Estoque <= 0) estoqueClass = "estoque-zerado";
+
+                tr.innerHTML = `
+                    <td>
+                        <input type="radio" name="selected_item" ${selectedId === p.Id ? 'checked' : ''} style="accent-color: var(--primary);">
+                    </td>
+                    <td>
+                        <div class="prod-name">${p.Nome}</div>
+                        <div class="prod-code"><i class="ri-barcode-box-line"></i> ${p.CodigoInterno || 'S/ Código'}</div>
+                    </td>
+                    <td>
+                        <div style="font-weight: 500;">${p.Marca || '-'}</div>
+                        <div style="color: var(--text-muted); font-size: 12px;">${p.Modelo || '-'}</div>
+                    </td>
+                    <td>
+                        <span class="estoque-badge ${estoqueClass}">${p.Estoque} un</span>
+                    </td>
+                    <td style="color: var(--text-muted); font-weight: 500;">
+                        ${p.EstoqueMinimo} un
+                    </td>
+                    <td style="font-weight: 600; color: var(--success);">${formatCurrency(p.PrecoVenda)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            if(selectedId) {
+                const selectedTr = document.getElementById(`tr-${selectedId}`);
+                if (selectedTr) selectedTr.style.backgroundColor = 'rgba(99, 102, 241, 0.1)';
+            }
+        }
+
+        function action(type) {
+            if (type === 'editar_selecionado' && !selectedId) return;
+            
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage({ action: type, id: selectedId });
+            } else {
+                console.log(`Ação: ${type}, ID: ${selectedId}`);
+            }
+        }
+    </script>
+</body>
+</html>
+

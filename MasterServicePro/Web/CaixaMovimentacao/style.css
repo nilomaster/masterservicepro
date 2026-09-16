@@ -1,0 +1,133 @@
+:root {
+    --bg-color: #1a1d24;
+    --card-bg: #242832;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --text-primary: #ffffff;
+    --text-secondary: #8b92a5;
+    --accent-blue: #3b82f6;
+    --success-green: #22c55e;
+    --danger-red: #ef4444;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.container {
+    width: 100%;
+    max-width: 450px;
+    padding: 30px;
+}
+
+h2 {
+    font-size: 20px;
+    margin-bottom: 25px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+input, select {
+    width: 100%;
+    padding: 12px 15px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+input:focus, select:focus {
+    border-color: var(--accent-blue);
+}
+
+.input-money {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--accent-blue);
+    text-align: center;
+}
+
+.actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.btn {
+    flex: 1;
+    padding: 14px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+.btn-outline:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+.btn-primary {
+    background: var(--accent-blue);
+    color: white;
+}
+
+.btn-primary:hover {
+    filter: brightness(1.1);
+}
+
+.btn-primary.danger {
+    background: var(--danger-red);
+}
+
+.btn-primary.success {
+    background: var(--success-green);
+}
+
+/* Responsividade 1366x768 (Laptops) */
+@media (max-width: 1400px), (max-height: 800px) {
+    .container { padding: 20px; }
+    h2 { font-size: 18px; margin-bottom: 20px; }
+    .form-group { margin-bottom: 15px; }
+    input, select { padding: 10px 12px; font-size: 13px; }
+    .input-money { font-size: 20px; }
+    .actions { margin-top: 20px; }
+    .btn { padding: 12px; font-size: 13px; }
+}

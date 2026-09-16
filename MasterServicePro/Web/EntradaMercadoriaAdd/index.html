@@ -1,0 +1,169 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Entrada de Mercadoria</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        slate: { 700: '#334155', 800: '#1e293b', 900: '#0f172a' },
+                        primary: { 500: '#6366f1', 600: '#4f46e5' },
+                        danger: { 500: '#ef4444', 600: '#dc2626' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: transparent; margin: 0; padding: 0; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .table-container { max-height: calc(100vh - 350px); overflow-y: auto; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        
+        /* Select & Input customization */
+        input, select {
+            background-color: #0f172a !important;
+            border: 1px solid #334155 !important;
+            color: white !important;
+        }
+        input:focus, select:focus {
+            border-color: #6366f1 !important;
+            outline: none !important;
+            box-shadow: 0 0 0 1px #6366f1 !important;
+        }
+        
+        /* SweetAlert Dark Theme overrides */
+        .swal2-popup { background: #1e293b !important; color: #f8fafc !important; }
+        .swal2-title { color: #f8fafc !important; font-size: 1.25rem !important; }
+        .swal2-html-container { color: #94a3b8 !important; }
+        .swal2-input { background: #0f172a !important; color: #f8fafc !important; border-color: #334155 !important; }
+    </style>
+</head>
+<body class="h-screen w-full flex flex-col p-6 box-border text-sm">
+
+    <div class="flex-1 flex flex-col bg-slate-800 rounded-xl shadow-2xl border border-slate-700 overflow-hidden relative">
+        
+        <!-- Formulário Header -->
+        <div class="p-6 border-b border-slate-700 grid grid-cols-2 gap-6 bg-slate-800/50">
+            <div>
+                <label class="block text-slate-400 font-semibold mb-2">Fornecedor</label>
+                <select id="cboFornecedores" class="w-full h-10 px-3 rounded-lg text-sm">
+                    <option value="">Selecione um fornecedor...</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-slate-400 font-semibold mb-2">Nota Fiscal</label>
+                <input type="text" id="txtNota" class="w-full h-10 px-3 rounded-lg text-sm" placeholder="Opcional">
+            </div>
+            <div class="col-span-2">
+                <label class="block text-slate-400 font-semibold mb-2">Observação</label>
+                <input type="text" id="txtObs" class="w-full h-10 px-3 rounded-lg text-sm" placeholder="Opcional">
+            </div>
+        </div>
+
+        <!-- Tabela de Itens -->
+        <div class="flex-1 flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-800">
+                <h2 class="text-white font-semibold">Itens da Entrada</h2>
+                <button onclick="adicionarItem()" class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow text-xs flex items-center gap-2">
+                    <i class="fas fa-plus"></i> Adicionar Item
+                </button>
+            </div>
+            
+            <div class="flex-1 table-container">
+                <table class="w-full text-left border-collapse">
+                    <thead class="sticky top-0 bg-slate-800 z-10">
+                        <tr class="text-slate-400 text-xs uppercase tracking-wider border-b border-slate-700">
+                            <th class="py-3 px-4 font-semibold">Descrição do Produto</th>
+                            <th class="py-3 px-4 font-semibold text-center w-24">Qtd</th>
+                            <th class="py-3 px-4 font-semibold text-right w-32">Custo Unit.</th>
+                            <th class="py-3 px-4 font-semibold text-right w-32">SubTotal</th>
+                            <th class="py-3 px-4 font-semibold text-center w-16">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-itens" class="text-sm">
+                        <!-- Itens renderizados aqui -->
+                    </tbody>
+                </table>
+                <div id="empty-state" class="w-full flex flex-col items-center justify-center py-12 text-slate-500">
+                    <i class="fas fa-shopping-cart text-4xl mb-3 opacity-50"></i>
+                    <p>Nenhum item adicionado.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer actions & Totals -->
+        <div class="px-6 py-4 border-t border-slate-700 bg-slate-900 shrink-0 flex justify-between items-center">
+            <div class="flex gap-4">
+                <button onclick="fechar()" class="bg-slate-700 hover:bg-slate-600 text-white px-6 py-2 rounded-lg font-medium transition-colors border border-slate-600">
+                    Cancelar
+                </button>
+            </div>
+            
+            <div class="flex items-center gap-6">
+                <div class="text-right">
+                    <span class="text-slate-400 text-xs font-bold uppercase tracking-wider block">Valor Total da Entrada</span>
+                    <span id="lblTotal" class="text-emerald-400 text-2xl font-bold">R$ 0,00</span>
+                </div>
+                <button onclick="gravarEntrada()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-3 rounded-lg font-bold transition-colors shadow-lg flex items-center gap-2 text-lg">
+                    <i class="fas fa-check"></i> Gravar Entrada
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Busca de Produto -->
+    <div id="modal-busca-produto" class="fixed inset-0 bg-slate-900/80 hidden z-50 items-center justify-center backdrop-blur-sm transition-opacity opacity-0" style="transition: opacity 0.2s;">
+        <div class="bg-slate-800 rounded-xl shadow-2xl border border-slate-700 w-[600px] max-w-full overflow-hidden flex flex-col scale-95 transition-transform" id="modal-busca-content" style="transition: transform 0.2s;">
+            <div class="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-800/50">
+                <h3 class="text-white font-bold text-lg"><i class="fas fa-search mr-2 text-primary-500"></i> Buscar Produto</h3>
+                <button onclick="fecharBuscaProduto()" class="text-slate-400 hover:text-white transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-4">
+                <div class="relative mb-4">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-slate-500"></i>
+                    </div>
+                    <input type="text" id="txtBuscaProduto" onkeyup="pesquisarProduto(this.value)" class="w-full h-12 pl-10 pr-4 rounded-lg bg-slate-900 border border-slate-700 text-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all placeholder-slate-500" placeholder="Digite o nome, c�digo de barras ou marca..." autocomplete="off">
+                </div>
+                
+                <div class="border border-slate-700 rounded-lg overflow-hidden h-[300px] flex flex-col bg-slate-900/50">
+                    <div class="overflow-y-auto flex-1 p-2" id="lista-produtos-busca">
+                        <!-- Itens renderizados aqui -->
+                        <div class="flex flex-col items-center justify-center h-full text-slate-500">
+                            <i class="fas fa-box-open text-3xl mb-2 opacity-50"></i>
+                            <p class="text-sm">Digite para pesquisar...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-4 border-t border-slate-700 bg-slate-800/50 text-right">
+                <button onclick="fecharBuscaProduto()" class="bg-slate-700 hover:bg-slate-600 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+

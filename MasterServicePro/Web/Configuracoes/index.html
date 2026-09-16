@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações do Sistema</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-app: #1A1D24;
+            --bg-card: #222630;
+            --bg-card-hover: #2A2F3B;
+            --bg-sidebar: #1E2129;
+            --element-border: #333845;
+            --primary: #6366F1;
+            --primary-hover: #4F46E5;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --danger-hover: #DC2626;
+            --text-title: #F8FAFC;
+            --text-body: #CBD5E1;
+            --text-muted: #94A3B8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-app); color: var(--text-body); padding: 40px; overflow-y: auto; }
+
+        .header { margin-bottom: 40px; }
+        .header h1 { color: var(--text-title); font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+        .header p { color: var(--text-muted); font-size: 15px; }
+
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; }
+
+        .card { background-color: var(--bg-card); border: 1px solid var(--element-border); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; }
+        .card-header { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 24px; }
+        .card-icon { width: 48px; height: 48px; border-radius: 12px; background-color: rgba(99, 102, 241, 0.1); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+        .icon-danger { background-color: rgba(239, 68, 68, 0.1); color: var(--danger); }
+        .icon-success { background-color: rgba(16, 185, 129, 0.1); color: var(--success); }
+        
+        .card-title-area h3 { color: var(--text-title); font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+        .card-title-area p { color: var(--text-muted); font-size: 13px; line-height: 1.5; }
+
+        .btn { padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; width: 100%; margin-top: auto; }
+        .btn-auto { width: auto; }
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+        .btn-outline { background-color: transparent; border: 1px solid var(--element-border); color: var(--text-body); }
+        .btn-outline:hover { background-color: var(--bg-card-hover); color: var(--text-title); }
+        .btn-danger { background-color: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); margin-bottom: 12px; }
+        .btn-danger:hover { background-color: var(--danger); color: white; transform: translateY(-1px); }
+
+        .danger-zone { display: flex; flex-direction: column; width: 100%; }
+
+        /* MODALS */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+            display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: var(--bg-card); border: 1px solid var(--element-border);
+            border-radius: 16px; width: 600px; max-width: 90vw; max-height: 90vh;
+            display: flex; flex-direction: column; overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .modal-content.large { width: 800px; }
+        
+        .modal-header {
+            padding: 24px; border-bottom: 1px solid var(--element-border); display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-header h2 { font-size: 20px; color: var(--text-title); font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .close-btn { background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; transition: color 0.2s; }
+        .close-btn:hover { color: var(--text-title); }
+        
+        .modal-body { padding: 24px; overflow-y: auto; flex: 1; }
+        .modal-footer { padding: 20px 24px; border-top: 1px solid var(--element-border); background: var(--bg-app); display: flex; justify-content: flex-end; gap: 12px; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; color: var(--text-body); font-size: 14px; font-weight: 500; }
+        .form-control { 
+            width: 100%; padding: 12px 16px; border-radius: 8px; 
+            border: 1px solid var(--element-border); background: var(--bg-app); 
+            color: var(--text-title); font-family: inherit; font-size: 14px; 
+            transition: all 0.2s;
+        }
+        .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2); }
+        textarea.form-control { resize: vertical; min-height: 120px; font-family: 'Consolas', monospace; font-size: 13px; }
+
+        .checkbox-group { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+        .checkbox-group input { width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary); }
+
+        .row { display: flex; gap: 16px; }
+        .col { flex: 1; }
+
+        /* Table */
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--element-border); }
+        th { color: var(--text-muted); font-size: 12px; text-transform: uppercase; font-weight: 600; background: var(--bg-sidebar); }
+        td { color: var(--text-body); font-size: 14px; }
+        tr:hover td { background-color: var(--bg-card-hover); }
+        
+        .btn-icon { background: transparent; border: 1px solid var(--element-border); color: var(--text-muted); width: 32px; height: 32px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .btn-icon:hover { color: var(--primary); border-color: var(--primary); }
+        .btn-icon.delete:hover { color: var(--danger); border-color: var(--danger); }
+        
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+        .badge-admin { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
+        .badge-func { background: rgba(148, 163, 184, 0.1); color: var(--text-muted); }
+
+        /* Responsividade 1366x768 (Laptops) */
+        @media (max-width: 1400px), (max-height: 800px) {
+            .header { padding: 20px 30px 15px 30px; }
+            .header h1 { font-size: 20px; }
+            .grid-container { padding: 15px 30px; gap: 15px; grid-template-columns: repeat(2, 1fr); }
+            .card { padding: 15px; gap: 15px; }
+            .card-title-area h3 { font-size: 16px; }
+            .card-title-area p { font-size: 13px; }
+            .modal-container { max-height: 95vh; }
+            .modal-body { padding: 15px; max-height: 65vh; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Configurações do Sistema</h1>
+        <p>Gerencie backups, usuários, integrações e manutenção de dados.</p>
+    </div>
+
+    <div class="grid-container">
+        
+        <!-- BACKUP -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon"><i class="ri-save-3-fill"></i></div>
+                <div class="card-title-area">
+                    <h3>Backup de Segurança</h3>
+                    <p>Crie uma cópia de segurança do banco de dados e arquivos importantes. É recomendado fazer backup regularmente.</p>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="action('backup')">Gerar Backup Agora</button>
+        </div>
+
+        <!-- USUARIOS -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon"><i class="ri-user-settings-fill"></i></div>
+                <div class="card-title-area">
+                    <h3>Controle de Usuários</h3>
+                    <p>Gerencie os funcionários e níveis de acesso do sistema. Adicione novos vendedores, técnicos ou administradores.</p>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('modal-usuarios'); requestData('usuarios');">Gerenciar Usuários</button>
+        </div>
+
+        <!-- TECNICOS -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon"><i class="ri-tools-fill"></i></div>
+                <div class="card-title-area">
+                    <h3>Controle de Técnicos</h3>
+                    <p>Gerencie os técnicos responsáveis pelas Ordens de Serviço.</p>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('modal-tecnicos'); requestData('tecnicos');">Gerenciar Técnicos</button>
+        </div>
+
+        <!-- WHATSAPP -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon icon-success"><i class="ri-whatsapp-fill"></i></div>
+                <div class="card-title-area">
+                    <h3>Integração WhatsApp</h3>
+                    <p>Configure o envio manual ou automático de mensagens e defina modelos prontos para o WhatsApp.</p>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('modal-whatsapp'); requestData('whatsapp');" style="background-color: var(--success); color: white;">Configurar WhatsApp</button>
+        </div>
+
+        <!-- TERMOS -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon"><i class="ri-file-text-fill"></i></div>
+                <div class="card-title-area">
+                    <h3>Termos da Impressão</h3>
+                    <p>Personalize o rodapé dos comprovantes e os termos de garantia que saem impressos nas Ordens de Serviço.</p>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('modal-termos'); requestData('termos');">Configurar Termos</button>
+        </div>
+
+        <!-- FORNECEDORES -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon" style="background-color: rgba(99, 102, 241, 0.1); color: var(--primary);"><i class="ri-truck-fill"></i></div>
+                <div class="card-title-area">
+                    <h3>Gerenciar Fornecedores</h3>
+                    <p>Cadastre e edite fornecedores para vincular às mercadorias na tela de entrada de estoque.</p>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('modal-fornecedores'); requestData('fornecedores');">Gerenciar Fornecedores</button>
+        </div>
+
+        <!-- RESET ZONE -->
+        <div class="card" style="grid-row: span 2; border-color: rgba(239, 68, 68, 0.3);">
+            <div class="card-header">
+                <div class="card-icon icon-danger"><i class="ri-delete-bin-2-fill"></i></div>
+                <div class="card-title-area">
+                    <h3>Zerar Banco de Dados</h3>
+                    <p>Exclua permanentemente os registros do sistema. <b>Atenção:</b> Esta ação é irreversível e não pode ser desfeita sem um backup.</p>
+                </div>
+            </div>
+            <div class="danger-zone">
+                <button class="btn btn-danger" onclick="action('reset_produtos')">Zerar Produtos & Estoque</button>
+                <button class="btn btn-danger" onclick="action('reset_clientes')">Zerar Clientes & OS</button>
+                <button class="btn btn-danger" onclick="action('reset_financeiro')">Zerar Dados Financeiros</button>
+                <button class="btn btn-danger" onclick="action('reset_relatorios')">Zerar Relatórios / Logs</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL TERMOS -->
+    <div class="modal-overlay" id="modal-termos">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="ri-file-text-line"></i> Termos e Condições de Impressão</h2>
+                <button class="close-btn" onclick="closeModal('modal-termos')"><i class="ri-close-line"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 16px; font-size: 14px; color: var(--text-muted);">Estes termos e dados da loja serão impressos no cabeçalho e rodapé dos comprovantes.</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div>
+                        <label class="form-label">Nome da Loja</label>
+                        <input type="text" id="txtNomeLoja" class="form-control" placeholder="Ex: MASTER SERVICE PRO">
+                    </div>
+                    <div>
+                        <label class="form-label">CNPJ (Opcional)</label>
+                        <input type="text" id="txtCnpjLoja" class="form-control" placeholder="00.000.000/0000-00">
+                    </div>
+                    <div>
+                        <label class="form-label">Contato / WhatsApp</label>
+                        <input type="text" id="txtContatoLoja" class="form-control" placeholder="(11) 99999-9999">
+                    </div>
+                    <div>
+                        <label class="form-label">Endereço Completo</label>
+                        <input type="text" id="txtEnderecoLoja" class="form-control" placeholder="Seu endereço aqui, 123 - Centro - Cidade/UF">
+                    </div>
+                </div>
+
+                <label class="form-label">Termos e Condições (Rodapé)</label>
+                <textarea id="txtTermos" class="form-control" style="min-height: 200px;"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline btn-auto" onclick="closeModal('modal-termos')">Cancelar</button>
+                <button class="btn btn-primary btn-auto" onclick="saveTermos()">Salvar Termos</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL WHATSAPP -->
+    <div class="modal-overlay" id="modal-whatsapp">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2><i class="ri-whatsapp-line" style="color: var(--success);"></i> Configurações do WhatsApp</h2>
+                <button class="close-btn" onclick="closeModal('modal-whatsapp')"><i class="ri-close-line"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="chkAutoMsg">
+                    <label for="chkAutoMsg" style="color: var(--text-title); font-weight: 500;">Habilitar Envio Automático (via Gateway API Evolution/WPPConnect)</label>
+                </div>
+                
+                <div class="row">
+                    <div class="col">
+                        <h4 style="margin-bottom: 16px; color: var(--text-title);">Conexão API</h4>
+                        <div class="form-group">
+                            <label>URL do Gateway API:</label>
+                            <input type="text" id="txtApiUrl" class="form-control" placeholder="Ex: http://localhost:8080">
+                        </div>
+                        <div class="form-group">
+                            <label>API Token / Global API Key:</label>
+                            <input type="text" id="txtApiToken" class="form-control" placeholder="Token de acesso">
+                        </div>
+                        <div class="form-group">
+                            <label>Nome da Instância:</label>
+                            <input type="text" id="txtInstancia" class="form-control" placeholder="Ex: masterservice">
+                        </div>
+                        <div class="row">
+                            <div class="form-group col">
+                                <label>Nome Admin (Relatórios):</label>
+                                <input type="text" id="txtNomeAdmin" class="form-control" placeholder="Seu nome">
+                            </div>
+                            <div class="form-group col">
+                                <label>WhatsApp Admin:</label>
+                                <input type="text" id="txtWppAdmin" class="form-control" placeholder="5511999999999">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col">
+                        <h4 style="margin-bottom: 16px; color: var(--text-title);">Templates de Mensagens</h4>
+                        <div class="form-group">
+                            <label>Quando O.S. for Aberta:</label>
+                            <textarea id="txtTplAberta" class="form-control" style="min-height: 80px;"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Quando O.S. for Finalizada (Pronta):</label>
+                            <textarea id="txtTplFinalizada" class="form-control" style="min-height: 80px;"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Outras Atualizações de Status:</label>
+                            <textarea id="txtTplStatus" class="form-control" style="min-height: 80px;"></textarea>
+                        </div>
+                        <p style="font-size: 11px; color: var(--text-muted);">
+                            Variáveis: {Cliente}, {OS}, {Aparelho}, {Valor}, {Status}, {Defeito}, {Laudo}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline btn-auto" onclick="closeModal('modal-whatsapp')">Cancelar</button>
+                <button class="btn btn-primary btn-auto" onclick="saveWhatsApp()" style="background-color: var(--success);">Salvar Configurações</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL USUARIOS -->
+    <div class="modal-overlay" id="modal-usuarios">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="ri-user-settings-line"></i> Gerenciamento de Usuários</h2>
+                <button class="close-btn" onclick="closeModal('modal-usuarios')"><i class="ri-close-line"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Login</th>
+                            <th>Nível de Acesso</th>
+                            <th style="text-align: right; padding-right: 24px;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-usuarios">
+                        <!-- js -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer" style="justify-content: space-between;">
+                <button class="btn btn-primary btn-auto" onclick="openUsuarioEdit(0, '', 'Funcionário')"><i class="ri-add-line"></i> Novo Usuário</button>
+                <button class="btn btn-outline btn-auto" onclick="closeModal('modal-usuarios')">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ADD/EDIT USUARIO -->
+    <div class="modal-overlay" id="modal-usuario-edit" style="z-index: 1010;">
+        <div class="modal-content" style="width: 400px;">
+            <div class="modal-header">
+                <h2 id="title-user-edit">Editar Usuário</h2>
+                <button class="close-btn" onclick="closeModal('modal-usuario-edit')"><i class="ri-close-line"></i></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="txtUsrId">
+                <div class="form-group">
+                    <label>Login:</label>
+                    <input type="text" id="txtUsrLogin" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Senha:</label>
+                    <input type="password" id="txtUsrSenha" class="form-control" placeholder="Deixe em branco para não alterar">
+                </div>
+                <div class="form-group">
+                    <label>Nível de Acesso:</label>
+                    <select id="selUsrNivel" class="form-control">
+                        <option value="Admin">Administrador</option>
+                        <option value="Funcionário">Funcionário</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline btn-auto" onclick="closeModal('modal-usuario-edit')">Cancelar</button>
+                <button class="btn btn-primary btn-auto" onclick="saveUsuario()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL TECNICOS -->
+    <div class="modal-overlay" id="modal-tecnicos">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="ri-tools-line"></i> Gerenciamento de Técnicos</h2>
+                <button class="close-btn" onclick="closeModal('modal-tecnicos')"><i class="ri-close-line"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Especialidade</th>
+                            <th style="text-align: right; padding-right: 24px;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-tecnicos">
+                        <!-- js -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer" style="justify-content: space-between;">
+                <button class="btn btn-primary btn-auto" onclick="openTecnicoEdit(0, '', '', '')"><i class="ri-add-line"></i> Novo Técnico</button>
+                <button class="btn btn-outline btn-auto" onclick="closeModal('modal-tecnicos')">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ADD/EDIT TECNICO -->
+    <div class="modal-overlay" id="modal-tecnico-edit" style="z-index: 1010;">
+        <div class="modal-content" style="width: 400px;">
+            <div class="modal-header">
+                <h2 id="title-tecnico-edit">Editar Técnico</h2>
+                <button class="close-btn" onclick="closeModal('modal-tecnico-edit')"><i class="ri-close-line"></i></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="txtTecId">
+                <div class="form-group">
+                    <label>Nome:</label>
+                    <input type="text" id="txtTecNome" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Telefone:</label>
+                    <input type="text" id="txtTecTelefone" class="form-control" placeholder="(00) 00000-0000">
+                </div>
+                <div class="form-group">
+                    <label>Especialidade:</label>
+                    <input type="text" id="txtTecEsp" class="form-control" placeholder="Ex: Manutenção de Celulares">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline btn-auto" onclick="closeModal('modal-tecnico-edit')">Cancelar</button>
+                <button class="btn btn-primary btn-auto" onclick="saveTecnico()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL FORNECEDORES -->
+    <div class="modal-overlay" id="modal-fornecedores">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2><i class="ri-truck-line"></i> Gerenciamento de Fornecedores</h2>
+                <button class="close-btn" onclick="closeModal('modal-fornecedores')"><i class="ri-close-line"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Loja</th>
+                            <th>WhatsApp</th>
+                            <th>CNPJ</th>
+                            <th style="text-align: right; padding-right: 24px;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-fornecedores">
+                        <!-- js -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer" style="justify-content: space-between;">
+                <button class="btn btn-primary btn-auto" onclick="openFornecedorEdit(0, '', '', '', '')"><i class="ri-add-line"></i> Novo Fornecedor</button>
+                <button class="btn btn-outline btn-auto" onclick="closeModal('modal-fornecedores')">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ADD/EDIT FORNECEDOR -->
+    <div class="modal-overlay" id="modal-fornecedor-edit" style="z-index: 1010;">
+        <div class="modal-content" style="width: 450px;">
+            <div class="modal-header">
+                <h2 id="title-fornecedor-edit">Editar Fornecedor</h2>
+                <button class="close-btn" onclick="closeModal('modal-fornecedor-edit')"><i class="ri-close-line"></i></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="txtForId">
+                <div class="form-group">
+                    <label>Nome do Fornecedor / Contato:</label>
+                    <input type="text" id="txtForNome" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Nome da Loja (Opcional):</label>
+                    <input type="text" id="txtForLoja" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>WhatsApp:</label>
+                    <input type="text" id="txtForWhatsapp" class="form-control" placeholder="(00) 00000-0000">
+                </div>
+                <div class="form-group">
+                    <label>CNPJ (Opcional):</label>
+                    <input type="text" id="txtForCnpj" class="form-control">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline btn-auto" onclick="closeModal('modal-fornecedor-edit')">Cancelar</button>
+                <button class="btn btn-primary btn-auto" onclick="saveFornecedor()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function action(type) {
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage({ action: type });
+            } else {
+                console.log(`Ação: ${type}`);
+            }
+        }
+
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        function requestData(tipo) {
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage({ action: 'request_' + tipo });
+            }
+        }
+
+        if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.addEventListener('message', event => {
+                const msg = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                
+                if (msg.action === 'load_termos') {
+                    document.getElementById('txtNomeLoja').value = msg.data.NomeLoja || '';
+                    document.getElementById('txtCnpjLoja').value = msg.data.Cnpj || '';
+                    document.getElementById('txtContatoLoja').value = msg.data.Contato || '';
+                    document.getElementById('txtEnderecoLoja').value = msg.data.Endereco || '';
+                    document.getElementById('txtTermos').value = msg.data.TermosOS || '';
+                }
+                else if (msg.action === 'load_whatsapp') {
+                    const w = msg.data;
+                    document.getElementById('chkAutoMsg').checked = w.UsarAPI;
+                    document.getElementById('txtApiUrl').value = w.ApiUrl || '';
+                    document.getElementById('txtApiToken').value = w.ApiToken || '';
+                    document.getElementById('txtInstancia').value = w.Instancia || '';
+                    document.getElementById('txtNomeAdmin').value = w.NomeAdministrador || '';
+                    document.getElementById('txtWppAdmin').value = w.TelefoneAdministrador || '';
+                    document.getElementById('txtTplAberta').value = w.TemplateAbertura || '';
+                    document.getElementById('txtTplFinalizada').value = w.TemplateFinalizado || '';
+                    document.getElementById('txtTplStatus').value = w.TemplateAtualizacao || '';
+                }
+                else if (msg.action === 'load_usuarios') {
+                    const tbody = document.getElementById('tbody-usuarios');
+                    tbody.innerHTML = '';
+                    msg.data.forEach(u => {
+                        const badgeClass = u.Nivel === 'Admin' ? 'badge-admin' : 'badge-func';
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${u.Id}</td>
+                                <td style="font-weight: 500; color: var(--text-title);">${u.Username}</td>
+                                <td><span class="badge ${badgeClass}">${u.Nivel}</span></td>
+                                <td style="text-align: right; padding-right: 24px;">
+                                    <button class="btn-icon" onclick="openUsuarioEdit(${u.Id}, '${u.Username}', '${u.Nivel}')"><i class="ri-pencil-line"></i></button>
+                                    <button class="btn-icon delete" onclick="deleteUsuario(${u.Id}, '${u.Username}')"><i class="ri-delete-bin-line"></i></button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+                else if (msg.action === 'refresh_usuarios') {
+                    requestData('usuarios');
+                    closeModal('modal-usuario-edit');
+                }
+                else if (msg.action === 'load_tecnicos') {
+                    const tbody = document.getElementById('tbody-tecnicos');
+                    tbody.innerHTML = '';
+                    msg.data.forEach(t => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${t.Id}</td>
+                                <td style="font-weight: 500; color: var(--text-title);">${t.Nome}</td>
+                                <td>${t.Especialidade || '-'}</td>
+                                <td style="text-align: right; padding-right: 24px;">
+                                    <button class="btn-icon" onclick="openTecnicoEdit(${t.Id}, '${t.Nome}', '${t.Telefone || ''}', '${t.Especialidade || ''}')"><i class="ri-pencil-line"></i></button>
+                                    <button class="btn-icon delete" onclick="deleteTecnico(${t.Id}, '${t.Nome}')"><i class="ri-delete-bin-line"></i></button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+                else if (msg.action === 'refresh_tecnicos') {
+                    requestData('tecnicos');
+                    closeModal('modal-tecnico-edit');
+                }
+                else if (msg.action === 'load_fornecedores') {
+                    const tbody = document.getElementById('tbody-fornecedores');
+                    tbody.innerHTML = '';
+                    msg.data.forEach(f => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${f.Id}</td>
+                                <td style="font-weight: 500; color: var(--text-title);">${f.Nome}</td>
+                                <td>${f.NomeLoja || '-'}</td>
+                                <td>${f.Telefone || '-'}</td>
+                                <td>${f.Cnpj || '-'}</td>
+                                <td style="text-align: right; padding-right: 24px;">
+                                    <button class="btn-icon" onclick="openFornecedorEdit(${f.Id}, '${f.Nome}', '${f.NomeLoja || ''}', '${f.Telefone || ''}', '${f.Cnpj || ''}')"><i class="ri-pencil-line"></i></button>
+                                    <button class="btn-icon delete" onclick="deleteFornecedor(${f.Id}, '${f.Nome}')"><i class="ri-delete-bin-line"></i></button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+                else if (msg.action === 'refresh_fornecedores') {
+                    requestData('fornecedores');
+                    closeModal('modal-fornecedor-edit');
+                }
+                else if (msg.action === 'close_termos') {
+                    closeModal('modal-termos');
+                }
+                else if (msg.action === 'close_whatsapp') {
+                    closeModal('modal-whatsapp');
+                }
+            });
+        }
+
+        function saveTermos() {
+            const data = {
+                NomeLoja: document.getElementById('txtNomeLoja').value,
+                Cnpj: document.getElementById('txtCnpjLoja').value,
+                Contato: document.getElementById('txtContatoLoja').value,
+                Endereco: document.getElementById('txtEnderecoLoja').value,
+                TermosOS: document.getElementById('txtTermos').value
+            };
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage({ action: 'save_termos', data: data });
+            }
+        }
+
+        function saveWhatsApp() {
+            const w = {
+                UsarAPI: document.getElementById('chkAutoMsg').checked,
+                ApiUrl: document.getElementById('txtApiUrl').value,
+                ApiToken: document.getElementById('txtApiToken').value,
+                Instancia: document.getElementById('txtInstancia').value,
+                NomeAdministrador: document.getElementById('txtNomeAdmin').value,
+                TelefoneAdministrador: document.getElementById('txtWppAdmin').value,
+                TemplateAbertura: document.getElementById('txtTplAberta').value,
+                TemplateFinalizado: document.getElementById('txtTplFinalizada').value,
+                TemplateAtualizacao: document.getElementById('txtTplStatus').value
+            };
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage({ action: 'save_whatsapp', data: w });
+            }
+        }
+
+        function openUsuarioEdit(id, login, nivel) {
+            document.getElementById('txtUsrId').value = id;
+            document.getElementById('txtUsrLogin').value = login;
+            document.getElementById('txtUsrSenha').value = '';
+            document.getElementById('selUsrNivel').value = nivel || 'Funcionário';
+            document.getElementById('title-user-edit').innerText = id === 0 ? "Novo Usuário" : "Editar Usuário";
+            openModal('modal-usuario-edit');
+        }
+
+        function saveUsuario() {
+            const u = {
+                Id: parseInt(document.getElementById('txtUsrId').value) || 0,
+                Username: document.getElementById('txtUsrLogin').value,
+                Senha: document.getElementById('txtUsrSenha').value,
+                Nivel: document.getElementById('selUsrNivel').value
+            };
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage({ action: 'save_usuario', data: u });
+            }
+        }
+
+        function deleteUsuario(id, login) {
+            if (confirm(`Deseja realmente excluir o usuário ${login}?`)) {
+                if (window.chrome && window.chrome.webview) {
+                    window.chrome.webview.postMessage({ action: 'delete_usuario', id: id });
+                }
+            }
+        }
+
+        function openTecnicoEdit(id, nome, telefone, especialidade) {
+            document.getElementById('txtTecId').value = id;
+            document.getElementById('txtTecNome').value = nome;
+            document.getElementById('txtTecTelefone').value = telefone;
+            document.getElementById('txtTecEsp').value = especialidade;
+            document.getElementById('title-tecnico-edit').innerText = id === 0 ? "Novo Técnico" : "Editar Técnico";
+            openModal('modal-tecnico-edit');
+        }
+
+        function saveTecnico() {
+            const t = {
+                Id: parseInt(document.getElementById('txtTecId').value) || 0,
+                Nome: document.getElementById('txtTecNome').value,
+                Telefone: document.getElementById('txtTecTelefone').value,
+                Especialidade: document.getElementById('txtTecEsp').value
+            };
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage({ action: 'save_tecnico', data: t });
+            }
+        }
+
+        function deleteTecnico(id, nome) {
+            if (confirm(`Deseja realmente excluir o técnico ${nome}?`)) {
+                if (window.chrome && window.chrome.webview) {
+                    window.chrome.webview.postMessage({ action: 'delete_tecnico', id: id });
+                }
+            }
+        }
+
+        function openFornecedorEdit(id, nome, loja, whatsapp, cnpj) {
+            document.getElementById('txtForId').value = id;
+            document.getElementById('txtForNome').value = nome;
+            document.getElementById('txtForLoja').value = loja;
+            document.getElementById('txtForWhatsapp').value = whatsapp;
+            document.getElementById('txtForCnpj').value = cnpj;
+            document.getElementById('title-fornecedor-edit').innerText = id === 0 ? "Novo Fornecedor" : "Editar Fornecedor";
+            openModal('modal-fornecedor-edit');
+        }
+
+        function saveFornecedor() {
+            const f = {
+                Id: parseInt(document.getElementById('txtForId').value) || 0,
+                Nome: document.getElementById('txtForNome').value,
+                NomeLoja: document.getElementById('txtForLoja').value,
+                Telefone: document.getElementById('txtForWhatsapp').value,
+                Cnpj: document.getElementById('txtForCnpj').value
+            };
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage({ action: 'save_fornecedor', data: f });
+            }
+        }
+
+        function deleteFornecedor(id, nome) {
+            if (confirm(`Deseja realmente excluir o fornecedor ${nome}?`)) {
+                if (window.chrome && window.chrome.webview) {
+                    window.chrome.webview.postMessage({ action: 'delete_fornecedor', id: id });
+                }
+            }
+        }
+    </script>
+</body>
+</html>
+

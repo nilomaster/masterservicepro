@@ -1,0 +1,430 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciamento de Clientes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-app: #1A1D24;
+            --bg-card: #222630;
+            --bg-card-hover: #2A2F3B;
+            --bg-sidebar: #1E2129;
+            --element-border: #333845;
+            --primary: #6366F1;
+            --primary-hover: #4F46E5;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --text-title: #F8FAFC;
+            --text-body: #CBD5E1;
+            --text-muted: #94A3B8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-app);
+            color: var(--text-body);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* HEADER */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 32px;
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--element-border);
+        }
+
+        .title-area h1 {
+            color: var(--text-title);
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .title-area p {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px rgba(99, 102, 241, 0.2);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        /* TOOLBAR */
+        .toolbar {
+            padding: 20px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 18px;
+        }
+
+        .search-box input {
+            width: 100%;
+            background-color: var(--bg-card);
+            border: 1px solid var(--element-border);
+            color: var(--text-title);
+            padding: 12px 16px 12px 42px;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
+        /* MAIN CONTENT */
+        .content {
+            flex: 1;
+            padding: 0 32px 32px 32px;
+            overflow-y: auto;
+        }
+
+        /* TABLE */
+        .table-container {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--element-border);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--bg-sidebar);
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--element-border);
+        }
+
+        td {
+            padding: 16px 20px;
+            font-size: 14px;
+            border-bottom: 1px solid var(--element-border);
+            color: var(--text-body);
+        }
+
+        tbody tr {
+            transition: all 0.2s;
+        }
+
+        tbody tr:hover {
+            background-color: var(--bg-card-hover);
+        }
+
+        .client-name {
+            color: var(--text-title);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #8B5CF6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .saldo-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .saldo-positivo { background-color: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .saldo-negativo { background-color: rgba(239, 68, 68, 0.1); color: var(--danger); }
+        .saldo-zerado { background-color: rgba(148, 163, 184, 0.1); color: var(--text-muted); }
+
+        .actions-cell {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: 1px solid var(--element-border);
+            background-color: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-icon:hover {
+            color: var(--text-title);
+            background-color: var(--element-border);
+        }
+
+        .btn-icon.edit:hover { color: var(--primary); border-color: var(--primary); }
+        .btn-icon.delete:hover { color: var(--danger); border-color: var(--danger); }
+        .btn-icon.history:hover { color: var(--warning); border-color: var(--warning); }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-app); }
+        ::-webkit-scrollbar-thumb { background: var(--element-border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+        .empty-state i {
+            font-size: 48px;
+            color: var(--element-border);
+            margin-bottom: 16px;
+        }
+
+        /* Responsividade 1366x768 (Laptops) */
+        @media (max-width: 1400px), (max-height: 800px) {
+            body { padding: 15px 20px; }
+            .header { padding-bottom: 15px; margin-bottom: 15px; }
+            .header h1 { font-size: 20px; }
+            .toolbar { padding: 0 0 15px 0; }
+            .table-container { margin: 0; }
+            th { padding: 12px 15px; font-size: 11px; }
+            td { padding: 12px 15px; font-size: 13px; }
+            .btn { padding: 8px 16px; font-size: 13px; }
+            .search-box input { padding: 10px 16px 10px 42px; font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="title-area">
+            <h1>Clientes</h1>
+            <p id="client-count">Carregando clientes...</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-primary" onclick="window.chrome.webview.postMessage({ action: 'novo_cliente' })">
+                <i class="ri-user-add-line"></i> Novo Cliente
+            </button>
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <div class="search-box">
+            <i class="ri-search-line"></i>
+            <input type="text" id="searchInput" placeholder="Buscar por nome, CPF ou telefone..." onkeyup="filterClientes()">
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Contato</th>
+                        <th>CPF/CNPJ</th>
+                        <th>Saldo</th>
+                        <th style="text-align: right;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="clientes-tbody">
+                    <!-- Clientes renderizados via JS -->
+                </tbody>
+            </table>
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <i class="ri-user-search-line"></i>
+                <h3>Nenhum cliente encontrado</h3>
+                <p>Tente buscar por outro termo ou cadastre um novo cliente.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let clientesData = [];
+
+        // Inicializa recebimento de mensagens do C#
+        if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.addEventListener('message', event => {
+                const msg = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                if (msg.action === 'load_data') {
+                    clientesData = msg.data;
+                    renderTable(clientesData);
+                }
+            });
+            // Solicitar dados ao carregar
+            window.chrome.webview.postMessage({ action: 'request_data' });
+        } else {
+            // Mock data for browser testing
+            clientesData = [
+                { Id: 1, Nome: "Alan Silva", Telefone: "(11) 99999-9999", WhatsApp: "(11) 99999-9999", CpfCnpj: "123.456.789-00", Saldo: 150.50 },
+                { Id: 2, Nome: "Maria Souza", Telefone: "(21) 98888-8888", WhatsApp: "(21) 98888-8888", CpfCnpj: "987.654.321-11", Saldo: -50.00 },
+                { Id: 3, Nome: "Empresa XPTO", Telefone: "(31) 3333-3333", WhatsApp: "N/A", CpfCnpj: "12.345.678/0001-99", Saldo: 0 }
+            ];
+            renderTable(clientesData);
+        }
+
+        function formatCurrency(val) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+        }
+
+        function getInitials(name) {
+            return name.substring(0, 2).toUpperCase();
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('clientes-tbody');
+            const emptyState = document.getElementById('empty-state');
+            const countLabel = document.getElementById('client-count');
+            
+            tbody.innerHTML = '';
+            
+            if (!data || data.length === 0) {
+                emptyState.style.display = 'block';
+                countLabel.innerText = `Nenhum cliente encontrado.`;
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            countLabel.innerText = `${data.length} cliente(s) cadastrado(s)`;
+
+            data.forEach(c => {
+                const tr = document.createElement('tr');
+                
+                let saldoClass = "saldo-zerado";
+                if (c.Saldo > 0) saldoClass = "saldo-positivo";
+                else if (c.Saldo < 0) saldoClass = "saldo-negativo";
+
+                let contato = c.WhatsApp && c.WhatsApp !== 'N/A' ? c.WhatsApp : c.Telefone;
+
+                tr.innerHTML = `
+                    <td>
+                        <div class="client-name">
+                            <div class="avatar">${getInitials(c.Nome)}</div>
+                            ${c.Nome}
+                        </div>
+                    </td>
+                    <td>${contato}</td>
+                    <td>${c.CpfCnpj || 'N/A'}</td>
+                    <td>
+                        <span class="saldo-badge ${saldoClass}">${formatCurrency(c.Saldo)}</span>
+                    </td>
+                    <td>
+                        <div class="actions-cell">
+                            <button class="btn-icon history" title="Histórico" onclick="action('historico', ${c.Id})">
+                                <i class="ri-history-line"></i>
+                            </button>
+                            <button class="btn-icon edit" title="Editar" onclick="action('editar', ${c.Id})">
+                                <i class="ri-pencil-line"></i>
+                            </button>
+                            <button class="btn-icon delete" title="Excluir" onclick="action('excluir', ${c.Id}, '${c.Nome}')">
+                                <i class="ri-delete-bin-line"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterClientes() {
+            const termo = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = clientesData.filter(c => 
+                (c.Nome && c.Nome.toLowerCase().includes(termo)) ||
+                (c.CpfCnpj && c.CpfCnpj.includes(termo)) ||
+                (c.Telefone && c.Telefone.includes(termo)) ||
+                (c.WhatsApp && c.WhatsApp.includes(termo))
+            );
+            renderTable(filtered);
+        }
+
+        function action(type, id, nome) {
+            if (type === 'excluir') {
+                if (!confirm(`Tem certeza que deseja excluir o cliente ${nome}?`)) return;
+            }
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage({ action: type, id: id });
+            } else {
+                console.log(`Ação: ${type}, ID: ${id}`);
+            }
+        }
+    </script>
+</body>
+</html>
+

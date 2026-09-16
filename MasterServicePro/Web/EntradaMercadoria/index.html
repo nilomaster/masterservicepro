@@ -1,0 +1,91 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entradas de Estoque</title>
+    <!-- Tailwind CSS (via CDN para rapidez) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        slate: { 800: '#1e293b', 900: '#0f172a' },
+                        primary: { 500: '#6366f1', 600: '#4f46e5' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: transparent; margin: 0; padding: 0; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .table-container { max-height: calc(100vh - 160px); overflow-y: auto; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="h-screen w-full flex flex-col p-4 box-border text-sm">
+
+    <div class="flex-1 flex flex-col h-full bg-slate-800 rounded-lg border border-slate-700 shadow-xl overflow-hidden">
+        <!-- Header -->
+        <div class="px-6 py-5 border-b border-slate-700 flex justify-between items-center bg-slate-800 shrink-0">
+            <div>
+                <h1 class="text-xl font-bold text-white mb-1">Entradas de Mercadorias</h1>
+                <p class="text-slate-400 text-xs">Gerencie as entradas de estoque e acompanhe o recálculo automático de custo médio.</p>
+            </div>
+            <div>
+                <button onclick="registrarNovaEntrada()" class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow flex items-center gap-2">
+                    <i class="fas fa-inbox"></i> Registrar Nova Entrada
+                </button>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="flex-1 table-container p-4 bg-slate-800">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="text-slate-400 text-xs uppercase tracking-wider border-b border-slate-700">
+                        <th class="pb-3 px-4 font-semibold">ID</th>
+                        <th class="pb-3 px-4 font-semibold">Data/Hora</th>
+                        <th class="pb-3 px-4 font-semibold">Fornecedor</th>
+                        <th class="pb-3 px-4 font-semibold">Nota Fiscal</th>
+                        <th class="pb-3 px-4 font-semibold text-right">Valor Total</th>
+                        <th class="pb-3 px-4 font-semibold">Obs</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-entradas" class="text-sm">
+                    <!-- Loaded via JS -->
+                </tbody>
+            </table>
+            
+            <div id="loading" class="w-full flex justify-center py-10">
+                <i class="fas fa-circle-notch fa-spin text-primary-500 text-2xl"></i>
+            </div>
+            
+            <div id="empty-state" class="hidden w-full flex flex-col items-center justify-center py-10 text-slate-500">
+                <i class="fas fa-box-open text-4xl mb-3 opacity-50"></i>
+                <p>Nenhuma entrada registrada.</p>
+            </div>
+        </div>
+        
+        <!-- Footer actions -->
+        <div class="px-6 py-4 border-t border-slate-700 bg-slate-800 shrink-0 flex justify-end">
+            <button onclick="fechar()" class="bg-slate-700 hover:bg-slate-600 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                Fechar
+            </button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+

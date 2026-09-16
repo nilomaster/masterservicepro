@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sucesso</title>
+    <style>
+        :root {
+            --bg-body: #1a1d24;
+            --bg-card: #232732;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --success: #10b981;
+            --success-hover: #059669;
+            --border: #334155;
+            --bg-sidebar: #1e222b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            padding: 40px 30px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+            color: var(--success);
+            text-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+        }
+
+        h2 {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 25px;
+            color: var(--success);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .details-box {
+            background: var(--bg-sidebar);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        
+        .detail-row:last-child {
+            margin-bottom: 0;
+            padding-top: 12px;
+            border-top: 1px dashed var(--border);
+        }
+
+        .detail-label {
+            color: var(--text-muted);
+            font-size: 16px;
+        }
+
+        .detail-value {
+            color: var(--text-main);
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .value-troco {
+            color: var(--success);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--primary);
+            color: white;
+            text-transform: uppercase;
+        }
+
+        .btn:hover {
+            background: var(--primary-hover);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="icon">✔</div>
+        <h2>VENDA FINALIZADA</h2>
+        
+        <div class="details-box">
+            <div class="detail-row">
+                <span class="detail-label">Total Pago:</span>
+                <span class="detail-value" id="lblTotal">R$ 0,00</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Forma de Pagamento:</span>
+                <span class="detail-value" id="lblPagamento">Dinheiro</span>
+            </div>
+            <div class="detail-row" id="rowTroco">
+                <span class="detail-label">Troco:</span>
+                <span class="detail-value value-troco" id="lblTroco">R$ 0,00</span>
+            </div>
+        </div>
+
+        <button id="btnOk" class="btn">NOVA VENDA (ENTER)</button>
+    </div>
+
+    <script>
+        // Receber dados do C#
+        window.chrome.webview.addEventListener('message', event => {
+            const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+            if (data.action === "LOAD_DATA") {
+                document.getElementById('lblTotal').innerText = data.total;
+                document.getElementById('lblPagamento').innerText = data.pagamento;
+                
+                if (data.trocoValue > 0) {
+                    document.getElementById('lblTroco').innerText = data.trocoFormat;
+                    document.getElementById('rowTroco').style.display = 'flex';
+                } else {
+                    document.getElementById('rowTroco').style.display = 'none';
+                }
+                
+                document.getElementById('btnOk').focus();
+            }
+        });
+
+        document.getElementById('btnOk').addEventListener('click', () => {
+            window.chrome.webview.postMessage({ action: "OK" });
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === 'Escape') {
+                window.chrome.webview.postMessage({ action: "OK" });
+            }
+        });
+
+    </script>
+</body>
+</html>

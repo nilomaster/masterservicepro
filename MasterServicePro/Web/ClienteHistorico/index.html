@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico do Cliente</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="modal-container">
+        <!-- Header -->
+        <header class="modal-header">
+            <div>
+                <h1 id="clientName">HISTÓRICO: CARREGANDO...</h1>
+                <p class="subtitle" id="clientSubtitle">Resumo de atendimentos e compras do cliente</p>
+            </div>
+            <button class="btn-close" id="btnClose" title="Fechar">
+                <i class="fas fa-times"></i>
+            </button>
+        </header>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+            <div class="card">
+                <div class="card-icon blue"><i class="fas fa-tools"></i></div>
+                <div class="card-info">
+                    <h3>Total de Ordens de Serviço</h3>
+                    <p id="totalOsCount">0</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-icon green"><i class="fas fa-shopping-cart"></i></div>
+                <div class="card-info">
+                    <h3>Total de Compras</h3>
+                    <p id="totalVendasCount">0</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-icon purple"><i class="fas fa-money-bill-wave"></i></div>
+                <div class="card-info">
+                    <h3>Total Gasto</h3>
+                    <p id="totalGasto" class="success-text">R$ 0,00</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content with Tabs -->
+        <main class="modal-body">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="tab-os">Ordens de Serviço</button>
+                <button class="tab-btn" data-tab="tab-vendas">Compras / PDV</button>
+            </div>
+
+            <div class="tab-content active" id="tab-os">
+                <div class="table-container">
+                    <table id="tableOS">
+                        <thead>
+                            <tr>
+                                <th>Nº OS</th>
+                                <th>Marca / Modelo</th>
+                                <th>Defeito</th>
+                                <th>Status</th>
+                                <th>Valor Total</th>
+                                <th>Data Abertura</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                    <div id="emptyOS" class="empty-state" style="display: none;">
+                        <i class="fas fa-clipboard-list"></i>
+                        <p>Nenhuma Ordem de Serviço encontrada.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="tab-vendas">
+                <div class="table-container">
+                    <table id="tableVendas">
+                        <thead>
+                            <tr>
+                                <th>Nº Venda</th>
+                                <th>Data da Venda</th>
+                                <th>Forma Pagamento</th>
+                                <th>Total Final</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                    <div id="emptyVendas" class="empty-state" style="display: none;">
+                        <i class="fas fa-shopping-bag"></i>
+                        <p>Nenhuma Compra encontrada.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="modal-footer">
+            <button class="btn btn-secondary" id="btnFooterClose">Fechar Janela</button>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
