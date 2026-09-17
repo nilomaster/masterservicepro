@@ -1,0 +1,12 @@
+# Visual Studio and .NET build output
+[Bb]in/
+[Oo]bj/
+**/bin/
+**/obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+packages/
+**/packages/

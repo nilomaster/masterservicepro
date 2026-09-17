@@ -49,6 +49,42 @@ namespace MasterServicePro.Forms
             BindEvents();
             InitWebViewSidebar();
             InitWebViewHeader();
+            InitLicensePeriodicCheck();
+        }
+
+        private Timer tmrLicenseCheck;
+
+        private void InitLicensePeriodicCheck()
+        {
+            tmrLicenseCheck = new Timer();
+            tmrLicenseCheck.Interval = 1000 * 60 * 30; // Check every 30 minutes
+            tmrLicenseCheck.Tick += async (s, e) =>
+            {
+                await VerifyLicenseInBackgroundAsync();
+            };
+            tmrLicenseCheck.Start();
+        }
+
+        private async System.Threading.Tasks.Task VerifyLicenseInBackgroundAsync()
+        {
+            try
+            {
+                var licResult = await MasterServicePro.Services.LicenseService.CheckLicenseAsync();
+                if (licResult != null && (!licResult.Success || licResult.Status != "active"))
+                {
+                    tmrLicenseCheck.Stop();
+                    using (var frmLic = new Forms.FrmLicencaWeb(licResult.Chave, licResult.Status == "expired", licResult.VencimentoBr))
+                    {
+                        if (frmLic.ShowDialog() != DialogResult.OK)
+                        {
+                            this.Close();
+                            return;
+                        }
+                    }
+                    tmrLicenseCheck.Start();
+                }
+            }
+            catch { }
         }
 
         private async void InitWebViewHeader()

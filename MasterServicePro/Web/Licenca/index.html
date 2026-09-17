@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Licenciamento - MasterServicePro</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        /* Modern dark theme with glassmorphism and accents */
+        /* All CSS comments must use ASCII characters only */
+        :root {
+            --bg-dark: #0A0D14;
+            --bg-card: #151822;
+            --bg-subcard: #1A1E2B;
+            --primary: #4361EE;
+            --primary-hover: #3753DC;
+            --primary-glow: rgba(67, 97, 238, 0.35);
+            --success: #10B981;
+            --success-glow: rgba(16, 185, 129, 0.4);
+            --danger: #EF4444;
+            --danger-glow: rgba(239, 68, 68, 0.25);
+            --warning: #F59E0B;
+            --text-main: #FFFFFF;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
+            --border-color: #2E3340;
+            --input-bg: #0D1017;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-card);
+            color: var(--text-main);
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+        }
+
+        /* Title Bar */
+        .titlebar {
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            background: rgba(10, 13, 20, 0.7);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            -webkit-app-region: drag;
+        }
+
+        .titlebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+            color: var(--text-main);
+        }
+
+        .titlebar-brand i {
+            color: var(--primary);
+            font-size: 18px;
+        }
+
+        .titlebar-brand span {
+            color: var(--primary);
+        }
+
+        .btn-close-window {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 18px;
+            cursor: pointer;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: 0.2s;
+            -webkit-app-region: no-drag;
+        }
+
+        .btn-close-window:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        /* Main Container */
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 24px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* View Switching */
+        .view-section {
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .view-section.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Alert Header */
+        .status-banner {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid var(--danger-glow);
+            border-radius: 10px;
+        }
+
+        .status-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(239, 68, 68, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--danger);
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .status-info h2 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #FFA3A3;
+        }
+
+        .status-info p {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        /* Pix Payment Content Card */
+        .payment-card {
+            background: var(--bg-subcard);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 14px;
+            position: relative;
+        }
+
+        .price-tag {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .price-tag .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+
+        .price-tag .amount {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.5px;
+        }
+
+        .price-tag .amount span {
+            font-size: 14px;
+            color: var(--primary);
+            font-weight: 600;
+            margin-right: 2px;
+        }
+
+        /* QR Code Container */
+        .qrcode-wrapper {
+            position: relative;
+            background: #FFFFFF;
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 190px;
+            height: 190px;
+        }
+
+        .qrcode-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 6px;
+        }
+
+        .qrcode-loading {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: #1A1D27;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid rgba(67, 97, 238, 0.2);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Copy Button */
+        .btn-copy {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: var(--primary);
+            color: #FFFFFF;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px var(--primary-glow);
+        }
+
+        .btn-copy:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-copy.copied {
+            background: var(--success);
+            box-shadow: 0 4px 14px var(--success-glow);
+        }
+
+        /* Status Radar pulse */
+        .polling-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .radar-dot {
+            position: relative;
+            width: 10px;
+            height: 10px;
+            background: var(--success);
+            border-radius: 50%;
+        }
+
+        .radar-dot::after {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--success);
+            border-radius: 50%;
+            animation: radarPulse 1.5s infinite;
+            opacity: 0;
+        }
+
+        @keyframes radarPulse {
+            0% { transform: scale(0.5); opacity: 1; }
+            100% { transform: scale(1.6); opacity: 0; }
+        }
+
+        /* Footer links */
+        .footer-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 5px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-link {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: 0.2s;
+        }
+
+        .btn-link:hover {
+            color: var(--text-main);
+        }
+
+        .btn-verify-now {
+            background: #252B3B;
+            border: 1px solid var(--border-color);
+            color: #CBD5E1;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
+        }
+
+        .btn-verify-now:hover {
+            background: #2F3649;
+            color: #FFFFFF;
+        }
+
+        /* Activation View */
+        .activation-card {
+            background: var(--bg-subcard);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .activation-card h3 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .activation-card p {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .input-group label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .serial-input {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 14px;
+            color: #60A5FA;
+            font-family: monospace;
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .serial-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-glow);
+        }
+
+        .serial-input::placeholder {
+            color: #475569;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            letter-spacing: 0;
+            text-transform: none;
+        }
+
+        /* Success Overlay */
+        .success-overlay {
+            position: absolute;
+            inset: 0;
+            background: var(--bg-card);
+            z-index: 50;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            text-align: center;
+            gap: 16px;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        .success-icon-wrapper {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(16, 185, 129, 0.15);
+            border: 2px solid var(--success);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--success);
+            font-size: 46px;
+            box-shadow: 0 0 30px var(--success-glow);
+            animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .success-overlay h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #34D399;
+        }
+
+        .success-overlay p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            max-width: 300px;
+            line-height: 1.5;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(50px);
+            background: #1E293B;
+            border: 1px solid #334155;
+            color: #FFFFFF;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 100;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Titlebar -->
+    <div class="titlebar" id="titlebar">
+        <div class="titlebar-brand">
+            <i class="ph-bold ph-shield-check"></i>
+            MasterService<span>Pro</span> Licenciamento
+        </div>
+        <button class="btn-close-window" id="btnClose" title="Fechar">
+            <i class="ph-bold ph-x"></i>
+        </button>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+
+        <!-- VIEW 1: PIX PAYMENT (EXPIRED) -->
+        <div class="view-section active" id="viewPix">
+            <div class="status-banner">
+                <div class="status-icon">
+                    <i class="ph-bold ph-warning-octagon"></i>
+                </div>
+                <div class="status-info">
+                    <h2 id="lblBannerTitle">Licença Expirada</h2>
+                    <p id="lblBannerDesc">Seu período contratado terminou. Efetue o Pix para desbloquear imediatamente.</p>
+                </div>
+            </div>
+
+            <div class="payment-card">
+                <div class="price-tag">
+                    <span class="label">Mensalidade do Sistema</span>
+                    <div class="amount"><span>R$</span><span id="lblAmount">80,00</span></div>
+                </div>
+
+                <!-- QR Code Display -->
+                <div class="qrcode-wrapper">
+                    <img id="imgQrCode" src="" alt="QR Code Pix" style="display: none;">
+                    <div class="qrcode-loading" id="qrLoading">
+                        <div class="spinner"></div>
+                        <span>Gerando Pix...</span>
+                    </div>
+                </div>
+
+                <!-- Copy Pix Button -->
+                <button class="btn-copy" id="btnCopyPix">
+                    <i class="ph-bold ph-copy"></i>
+                    <span>Copiar Código Pix (Copia e Cola)</span>
+                </button>
+
+                <!-- Polling radar -->
+                <div class="polling-status">
+                    <div class="radar-dot"></div>
+                    <span id="lblPollStatus">Aguardando pagamento... Verificando a cada 4s</span>
+                </div>
+            </div>
+
+            <div class="footer-actions">
+                <button class="btn-link" id="btnGoToActivation">
+                    <i class="ph-bold ph-key"></i>
+                    <span>Inserir outra chave de licença</span>
+                </button>
+                <button class="btn-verify-now" id="btnVerifyNow">
+                    <i class="ph-bold ph-arrows-clockwise"></i>
+                    <span>Já paguei</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW 2: ACTIVATION (INSERT SERIAL) -->
+        <div class="view-section" id="viewActivation">
+            <div class="activation-card">
+                <div>
+                    <h3 id="lblActivationTitle">Ativar Licença</h3>
+                    <p id="lblActivationDesc">Digite a chave serial fornecida para vincular o MasterServicePro a esta máquina.</p>
+                </div>
+
+                <div class="input-group">
+                    <label for="txtSerial">Chave de Licença (Serial):</label>
+                    <input type="text" id="txtSerial" class="serial-input" placeholder="MSP-XXXX-XXXX" maxlength="25" autocomplete="off">
+                </div>
+
+                <button class="btn-copy" id="btnSubmitActivation">
+                    <i class="ph-bold ph-check-circle"></i>
+                    <span>Validar e Ativar</span>
+                </button>
+
+                <div style="text-align: center;">
+                    <button class="btn-link" id="btnBackToPix" style="margin: 0 auto;">
+                        <i class="ph-bold ph-arrow-left"></i>
+                        <span>Voltar para tela de pagamento Pix</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SUCCESS OVERLAY (SHOWN WHEN PAYMENT IS APPROVED) -->
+        <div class="success-overlay" id="overlaySuccess">
+            <div class="success-icon-wrapper">
+                <i class="ph-bold ph-check"></i>
+            </div>
+            <h2>Pagamento Confirmado!</h2>
+            <p id="lblSuccessMsg">Sua licença foi renovada por mais 30 dias com sucesso. Liberando o sistema...</p>
+            <div class="spinner" style="width: 24px; height: 24px; margin-top: 10px;"></div>
+        </div>
+
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="ph-bold ph-check-circle" style="color: var(--success);"></i>
+        <span id="toastMsg">Código Pix copiado!</span>
+    </div>
+
+    <script>
+        // Client-side interactions and bridge with C# WebView2
+        // All comments must use ASCII characters only
+
+        let copiaColaString = '';
+        let currentPaymentId = '';
+        let currentLicenseKey = '';
+        let pollTimer = null;
+
+        // Elements
+        const viewPix = document.getElementById('viewPix');
+        const viewActivation = document.getElementById('viewActivation');
+        const overlaySuccess = document.getElementById('overlaySuccess');
+        const btnClose = document.getElementById('btnClose');
+        const btnCopyPix = document.getElementById('btnCopyPix');
+        const btnVerifyNow = document.getElementById('btnVerifyNow');
+        const btnGoToActivation = document.getElementById('btnGoToActivation');
+        const btnBackToPix = document.getElementById('btnBackToPix');
+        const btnSubmitActivation = document.getElementById('btnSubmitActivation');
+        const txtSerial = document.getElementById('txtSerial');
+        const imgQrCode = document.getElementById('imgQrCode');
+        const qrLoading = document.getElementById('qrLoading');
+        const lblAmount = document.getElementById('lblAmount');
+        const toast = document.getElementById('toast');
+        const toastMsg = document.getElementById('toastMsg');
+        const lblPollStatus = document.getElementById('lblPollStatus');
+
+        function showToast(message) {
+            toastMsg.innerText = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Titlebar Drag Event
+        document.getElementById('titlebar').addEventListener('mousedown', (e) => {
+            if (e.target !== btnClose && !btnClose.contains(e.target)) {
+                sendToCSharp({ action: 'drag' });
+            }
+        });
+
+        // Close window
+        btnClose.addEventListener('click', () => {
+            sendToCSharp({ action: 'close' });
+        });
+
+        // Switch to Activation view
+        btnGoToActivation.addEventListener('click', () => {
+            viewPix.classList.remove('active');
+            viewActivation.classList.add('active');
+            txtSerial.focus();
+        });
+
+        // Switch to Pix view
+        btnBackToPix.addEventListener('click', () => {
+            viewActivation.classList.remove('active');
+            viewPix.classList.add('active');
+        });
+
+        // Submit Activation Key
+        btnSubmitActivation.addEventListener('click', () => {
+            const key = txtSerial.value.trim().toUpperCase();
+            if (!key) {
+                showToast('Informe a chave de licença.');
+                return;
+            }
+            btnSubmitActivation.disabled = true;
+            btnSubmitActivation.querySelector('span').innerText = 'Validando...';
+            sendToCSharp({ action: 'activateKey', key: key });
+        });
+
+        // Copy Pix to Clipboard
+        btnCopyPix.addEventListener('click', () => {
+            if (!copiaColaString) {
+                showToast('Aguarde a geração do Pix...');
+                return;
+            }
+
+            // Copy to clipboard
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(copiaColaString).then(() => {
+                    handleCopySuccess();
+                }).catch(() => {
+                    fallbackCopy(copiaColaString);
+                });
+            } else {
+                fallbackCopy(copiaColaString);
+            }
+        });
+
+        function fallbackCopy(text) {
+            const tempInput = document.createElement('textarea');
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            handleCopySuccess();
+        }
+
+        function handleCopySuccess() {
+            btnCopyPix.classList.add('copied');
+            btnCopyPix.querySelector('span').innerText = 'Código Pix Copiado! Cole no App do Banco';
+            btnCopyPix.querySelector('i').className = 'ph-bold ph-check';
+            showToast('Chave Pix copiada com sucesso!');
+            setTimeout(() => {
+                btnCopyPix.classList.remove('copied');
+                btnCopyPix.querySelector('span').innerText = 'Copiar Código Pix (Copia e Cola)';
+                btnCopyPix.querySelector('i').className = 'ph-bold ph-copy';
+            }, 5000);
+        }
+
+        // Manual Verify Now
+        btnVerifyNow.addEventListener('click', () => {
+            lblPollStatus.innerText = 'Consultando pagamento agora...';
+            sendToCSharp({ action: 'checkPixStatus', paymentId: currentPaymentId, key: currentLicenseKey });
+        });
+
+        // Communication Bridge with C#
+        function sendToCSharp(payload) {
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage(JSON.stringify(payload));
+            }
+        }
+
+        // Handling Messages sent from C#
+        if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.addEventListener('message', (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleIncomingMessage(data);
+                } catch (e) {
+                    console.error('Error parsing incoming message:', e);
+                }
+            });
+        }
+
+        function handleIncomingMessage(data) {
+            switch (data.type) {
+                case 'init':
+                    currentLicenseKey = data.chave || '';
+                    if (data.isMissingKey) {
+                        viewPix.classList.remove('active');
+                        viewActivation.classList.add('active');
+                    } else {
+                        viewActivation.classList.remove('active');
+                        viewPix.classList.add('active');
+                        if (data.vencimento) {
+                            document.getElementById('lblBannerDesc').innerText = `Sua licença expirou em ${data.vencimento}. Efetue o Pix para desbloquear.`;
+                        }
+                    }
+                    break;
+
+                case 'pixGenerated':
+                    copiaColaString = data.copiaCola || '';
+                    currentPaymentId = data.paymentId || '';
+                    if (data.valor) {
+                        lblAmount.innerText = Number(data.valor).toFixed(2).replace('.', ',');
+                    }
+                    if (data.qrCodeBase64) {
+                        imgQrCode.src = 'data:image/png;base64,' + data.qrCodeBase64;
+                        imgQrCode.style.display = 'block';
+                        qrLoading.style.display = 'none';
+                    }
+                    startPolling();
+                    break;
+
+                case 'paymentApproved':
+                    stopPolling();
+                    overlaySuccess.style.display = 'flex';
+                    if (data.vencimento) {
+                        document.getElementById('lblSuccessMsg').innerText = `Sua licença foi renovada até ${data.vencimento}. Liberando o sistema...`;
+                    }
+                    setTimeout(() => {
+                        sendToCSharp({ action: 'unlockSuccess' });
+                    }, 2500);
+                    break;
+
+                case 'activationResult':
+                    btnSubmitActivation.disabled = false;
+                    btnSubmitActivation.querySelector('span').innerText = 'Validar e Ativar';
+                    if (data.success) {
+                        showToast('Licença ativada com sucesso!');
+                        setTimeout(() => {
+                            sendToCSharp({ action: 'unlockSuccess' });
+                        }, 1000);
+                    } else {
+                        showToast(data.message || 'Chave inválida.');
+                    }
+                    break;
+
+                case 'pixStatusUpdate':
+                    if (data.status === 'approved') {
+                        handleIncomingMessage({ type: 'paymentApproved', vencimento: data.vencimento });
+                    } else {
+                        lblPollStatus.innerText = 'Aguardando pagamento... Verificando a cada 4s';
+                    }
+                    break;
+            }
+        }
+
+        function startPolling() {
+            stopPolling();
+            pollTimer = setInterval(() => {
+                if (currentPaymentId) {
+                    sendToCSharp({ action: 'checkPixStatus', paymentId: currentPaymentId, key: currentLicenseKey });
+                }
+            }, 4000);
+        }
+
+        function stopPolling() {
+            if (pollTimer) {
+                clearInterval(pollTimer);
+                pollTimer = null;
+            }
+        }
+
+        // Format Serial Input automatically (e.g. MSP-XXXX-XXXX)
+        txtSerial.addEventListener('input', (e) => {
+            let val = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+            e.target.value = val;
+        });
+
+        // Notify C# when HTML is fully loaded and ready
+        window.addEventListener('DOMContentLoaded', () => {
+            sendToCSharp({ action: 'ready' });
+        });
+    </script>
+</body>
+</html>
