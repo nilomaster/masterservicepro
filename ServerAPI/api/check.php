@@ -16,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // Retrieve input params (accepts GET or POST JSON / form-data)
 $chave = '';
 $hwid = '';
+$sistema = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $rawInput = file_get_contents('php://input');
@@ -23,13 +24,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (is_array($jsonData)) {
         $chave = trim($jsonData['chave'] ?? '');
         $hwid = trim($jsonData['hwid'] ?? '');
+        $sistema = trim($jsonData['sistema'] ?? '');
     } else {
         $chave = trim($_POST['chave'] ?? '');
         $hwid = trim($_POST['hwid'] ?? '');
+        $sistema = trim($_POST['sistema'] ?? '');
     }
 } else {
     $chave = trim($_GET['chave'] ?? '');
     $hwid = trim($_GET['hwid'] ?? '');
+    $sistema = trim($_GET['sistema'] ?? '');
 }
 
 if (empty($chave)) {
@@ -94,6 +98,7 @@ if ($now > $vencimento) {
     sendJsonResponse([
         'success' => true,
         'status' => 'expired',
+        'sistema' => $licenca['sistema'] ?? 'MasterServicePro',
         'cliente' => $licenca['cliente_nome'],
         'chave' => $licenca['chave_licenca'],
         'vencimento' => $vencimento->format('Y-m-d H:i:s'),
@@ -118,6 +123,7 @@ $signature = generateLicenseSignature(
 sendJsonResponse([
     'success' => true,
     'status' => 'active',
+    'sistema' => $licenca['sistema'] ?? 'MasterServicePro',
     'cliente' => $licenca['cliente_nome'],
     'chave' => $licenca['chave_licenca'],
     'vencimento' => $vencimento->format('Y-m-d H:i:s'),

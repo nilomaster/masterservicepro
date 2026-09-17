@@ -75,7 +75,7 @@ if ($recentPix && !empty($recentPix['qr_code_base64'])) {
 
 // Prepare Mercado Pago API request
 $payerEmail = 'financeiro@' . preg_replace('/[^a-zA-Z0-9]/', '', strtolower($licenca['chave_licenca'])) . '.com';
-$mpToken = trim(MP_ACCESS_TOKEN);
+$mpToken = trim(getMercadoPagoToken());
 
 $isDemoMode = ($mpToken === 'APP_USR-SEU-ACCESS-TOKEN-AQUI' || empty($mpToken));
 
@@ -120,7 +120,7 @@ if ($isDemoMode) {
 $endpoint = 'https://api.mercadopago.com/v1/payments';
 $payload = [
     'transaction_amount' => (float)$valor,
-    'description' => 'Renovacao Licenca MasterServicePro - ' . $licenca['chave_licenca'],
+    'description' => 'Renovacao Licenca ' . ($licenca['sistema'] ?? 'MasterServicePro') . ' - ' . $licenca['chave_licenca'],
     'payment_method_id' => 'pix',
     'payer' => [
         'email' => $payerEmail,

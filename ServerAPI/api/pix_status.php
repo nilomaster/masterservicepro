@@ -112,7 +112,7 @@ if ($simulateApprove) {
 }
 
 // Consult Mercado Pago API if real credentials configured
-$mpToken = trim(MP_ACCESS_TOKEN);
+$mpToken = trim(getMercadoPagoToken());
 if (!empty($mpToken) && $mpToken !== 'APP_USR-SEU-ACCESS-TOKEN-AQUI') {
     $ch = curl_init('https://api.mercadopago.com/v1/payments/' . $pixRecord['mp_payment_id']);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
