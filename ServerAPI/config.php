@@ -3,16 +3,19 @@
 // All comments must use ASCII characters only.
 
 // Database configuration
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'masterservicepro_licencas');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_HOST', 'mdev_solutions.mysql.dbaas.com.br');
+define('DB_NAME', 'mdev_solutions');
+define('DB_USER', 'mdev_solutions');
+define('DB_PASS', 'Senhadb2026!@#');
 
 // Default Fallback Credentials (can be updated dynamically via admin panel)
 define('MP_ACCESS_TOKEN', 'APP_USR-SEU-ACCESS-TOKEN-AQUI');
 define('DEFAULT_MONTHLY_PRICE', 80.00);
 define('API_SECRET_SALT', 'MasterDevSolutions_Secret_Key_2026_Salt');
 define('ADMIN_PASSWORD', 'admin123');
+
+// Load Global Error Handler
+require_once __DIR__ . '/error_handler.php';
 
 // Helper function to establish database connection with PDO
 function getDbConnection() {
@@ -28,13 +31,13 @@ function getDbConnection() {
             $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
             ensureSchemaUpgrades($pdo);
         } catch (PDOException $e) {
-            header('Content-Type: application/json; charset=utf-8');
-            http_response_code(500);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Database connection failed: ' . $e->getMessage()
-            ]);
-            exit;
+            showGlobalError(
+                'db_connection',
+                'Falha na Conexão com o Banco de Dados',
+                'Não foi possível estabelecer conexão com o servidor MySQL configurado.',
+                $e->getMessage(),
+                500
+            );
         }
     }
     return $pdo;
