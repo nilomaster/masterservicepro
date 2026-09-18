@@ -13,6 +13,7 @@ namespace MasterServicePro.Forms
     public class FrmLoginWeb : Form
     {
         private UsuarioRepository repository = new UsuarioRepository();
+        private MasterServicePro.Services.LicenseCheckResult _licResult;
         private Microsoft.Web.WebView2.WinForms.WebView2 webView;
         private System.Windows.Forms.PictureBox picSpinner;
         private System.Windows.Forms.Label lblLoadingText;
@@ -24,8 +25,9 @@ namespace MasterServicePro.Forms
         [DllImport("user32.DLL", EntryPoint = "SendMessage")]
         private extern static void SendMessage(System.IntPtr hWnd, int wMsg, int wParam, int lParam);
 
-        public FrmLoginWeb()
+        public FrmLoginWeb(MasterServicePro.Services.LicenseCheckResult licResult = null)
         {
+            _licResult = licResult;
             InitializeComponent();
             try { this.Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch { }
             this.MouseDown += FrmLoginWeb_MouseDown;
@@ -210,6 +212,20 @@ namespace MasterServicePro.Forms
                             
                             await webView.CoreWebView2.ExecuteScriptAsync($"loadLogo('{base64String}')");
                         }
+                    }
+                    catch { }
+
+                    // Send license status to Web view
+                    try
+                    {
+                        var licData = new
+                        {
+                            isLicensed = _licResult != null && _licResult.Success && _licResult.Status == "active",
+                            cliente = _licResult?.Cliente ?? "",
+                            vencimento = _licResult?.VencimentoBr ?? ""
+                        };
+                        string jsonLic = JsonConvert.SerializeObject(licData);
+                        await webView.CoreWebView2.ExecuteScriptAsync($"setLicenseStatus({jsonLic})");
                     }
                     catch { }
 

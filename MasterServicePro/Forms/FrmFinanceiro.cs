@@ -246,15 +246,19 @@ namespace MasterServicePro.Forms
                     lblAberturaValue.ForeColor = UITheme.Warning;
                     lblAberturaTitle.Text = "SALDO INICIAL (ABERTO)";
 
+                    decimal dinEntradas = repository.GetEntradasPorFormaPagamento(dataAbertura, agora, "Dinheiro");
+                    decimal dinSaidas = repository.GetSaidasPorFormaPagamento(dataAbertura, agora, "Dinheiro");
+
                     lblEntradasValue.Text = entradas.ToString("C2");
                     lblSaidasValue.Text = saidas.ToString("C2");
-                    lblSaldoValue.Text = (caixa.ValorAbertura + entradas - saidas).ToString("C2");
+                    // Physical cash in drawer = Opening balance + Cash in - Cash out
+                    lblSaldoValue.Text = (caixa.ValorAbertura + dinEntradas - dinSaidas).ToString("C2");
                     lblSaldoTitle.Text = "DINHEIRO NO CAIXA";
 
-                    lblPixValue.Text = repository.GetTotalPorFormaPagamento(dataAbertura, agora, "Pix").ToString("C2");
-                    lblDinheiroValue.Text = repository.GetTotalPorFormaPagamento(dataAbertura, agora, "Dinheiro").ToString("C2");
-                    lblCreditoValue.Text = repository.GetTotalPorFormaPagamento(dataAbertura, agora, "Cartão de Crédito").ToString("C2");
-                    lblDebitoValue.Text = repository.GetTotalPorFormaPagamento(dataAbertura, agora, "Cartão de Débito").ToString("C2");
+                    lblPixValue.Text = repository.GetEntradasPorFormaPagamento(dataAbertura, agora, "Pix").ToString("C2");
+                    lblDinheiroValue.Text = dinEntradas.ToString("C2");
+                    lblCreditoValue.Text = repository.GetEntradasPorFormaPagamento(dataAbertura, agora, "Cartão de Crédito").ToString("C2");
+                    lblDebitoValue.Text = repository.GetEntradasPorFormaPagamento(dataAbertura, agora, "Cartão de Débito").ToString("C2");
                 }
                 else
                 {
@@ -576,15 +580,17 @@ namespace MasterServicePro.Forms
 
             lblEntradasValue.Text = entradas.ToString("C2");
             lblSaidasValue.Text = saidas.ToString("C2");
-            lblSaldoValue.Text = (vlrAbertura + entradas - saidas).ToString("C2");
-            lblSaldoTitle.Text = "SALDO FINAL DO CAIXA";
+            decimal histDinEntradas = repository.GetEntradasPorFormaPagamento(inicio, fim, "Dinheiro");
+            decimal histDinSaidas = repository.GetSaidasPorFormaPagamento(inicio, fim, "Dinheiro");
+            lblSaldoValue.Text = (vlrAbertura + histDinEntradas - histDinSaidas).ToString("C2");
+            lblSaldoTitle.Text = "DINHEIRO NO CAIXA";
 
-            lblPixValue.Text = repository.GetTotalPorFormaPagamento(inicio, fim, "Pix").ToString("C2");
-            lblDinheiroValue.Text = repository.GetTotalPorFormaPagamento(inicio, fim, "Dinheiro").ToString("C2");
-            lblCreditoValue.Text = repository.GetTotalPorFormaPagamento(inicio, fim, "Cartão de Crédito").ToString("C2");
-            lblDebitoValue.Text = repository.GetTotalPorFormaPagamento(inicio, fim, "Cartão de Débito").ToString("C2");
+            lblPixValue.Text = repository.GetEntradasPorFormaPagamento(inicio, fim, "Pix").ToString("C2");
+            lblDinheiroValue.Text = histDinEntradas.ToString("C2");
+            lblCreditoValue.Text = repository.GetEntradasPorFormaPagamento(inicio, fim, "Cartão de Crédito").ToString("C2");
+            lblDebitoValue.Text = repository.GetEntradasPorFormaPagamento(inicio, fim, "Cartão de Débito").ToString("C2");
 
-            // Bloqueia ações enquanto visualiza histórico
+            // Block actions while viewing history
             btnAbrirCaixa.Enabled = false;
             btnFecharCaixa.Enabled = false;
 

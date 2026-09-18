@@ -32,6 +32,16 @@ namespace MasterServicePro.Forms
             this.expirationDate = vencimento;
 
             InitializeComponent();
+            this.KeyPreview = true;
+            this.KeyDown += (s, e) =>
+            {
+                // Close modal on Escape key
+                if (e.KeyCode == Keys.Escape)
+                {
+                    this.DialogResult = DialogResult.Cancel;
+                    this.Close();
+                }
+            };
             try { this.Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch { }
             this.Load += FrmLicencaWeb_Load;
         }
@@ -47,14 +57,14 @@ namespace MasterServicePro.Forms
             this.webView.Dock = DockStyle.Fill;
             this.webView.Location = new Point(0, 0);
             this.webView.Name = "webView";
-            this.webView.Size = new Size(420, 580);
+            this.webView.Size = new Size(680, 560);
             this.webView.TabIndex = 0;
             this.webView.ZoomFactor = 1D;
 
-            this.AutoScaleDimensions = new SizeF(7F, 15F);
-            this.AutoScaleMode = AutoScaleMode.Font;
+            this.AutoScaleMode = AutoScaleMode.None;
             this.BackColor = Color.FromArgb(10, 13, 20);
-            this.ClientSize = new Size(420, 580);
+            this.ClientSize = new Size(680, 560);
+            this.MinimumSize = new Size(560, 480);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.None;
             this.Padding = new Padding(1);
@@ -64,6 +74,38 @@ namespace MasterServicePro.Forms
 
             ((System.ComponentModel.ISupportInitialize)(this.webView)).EndInit();
             this.ResumeLayout(false);
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            // Allow border resizing on borderless form
+            const int WM_NCHITTEST = 0x84;
+            const int HTLEFT = 10;
+            const int HTRIGHT = 11;
+            const int HTTOP = 12;
+            const int HTTOPLEFT = 13;
+            const int HTTOPRIGHT = 14;
+            const int HTBOTTOM = 15;
+            const int HTBOTTOMLEFT = 16;
+            const int HTBOTTOMRIGHT = 17;
+
+            if (m.Msg == WM_NCHITTEST)
+            {
+                base.WndProc(ref m);
+                Point pt = this.PointToClient(new Point(m.LParam.ToInt32()));
+                int grip = 8;
+
+                if (pt.X <= grip && pt.Y <= grip) { m.Result = (IntPtr)HTTOPLEFT; return; }
+                if (pt.X >= this.ClientSize.Width - grip && pt.Y <= grip) { m.Result = (IntPtr)HTTOPRIGHT; return; }
+                if (pt.X <= grip && pt.Y >= this.ClientSize.Height - grip) { m.Result = (IntPtr)HTBOTTOMLEFT; return; }
+                if (pt.X >= this.ClientSize.Width - grip && pt.Y >= this.ClientSize.Height - grip) { m.Result = (IntPtr)HTBOTTOMRIGHT; return; }
+                if (pt.X <= grip) { m.Result = (IntPtr)HTLEFT; return; }
+                if (pt.X >= this.ClientSize.Width - grip) { m.Result = (IntPtr)HTRIGHT; return; }
+                if (pt.Y <= grip) { m.Result = (IntPtr)HTTOP; return; }
+                if (pt.Y >= this.ClientSize.Height - grip) { m.Result = (IntPtr)HTBOTTOM; return; }
+                return;
+            }
+            base.WndProc(ref m);
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -110,7 +152,14 @@ namespace MasterServicePro.Forms
             {
                 string jsonString = e.WebMessageAsJson;
                 dynamic message = JsonConvert.DeserializeObject(jsonString);
-                string action = message.action;
+
+                // Handle double encoded string if passed via stringify
+                if (message is string strMsg)
+                {
+                    message = JsonConvert.DeserializeObject(strMsg);
+                }
+
+                string action = message?.action?.ToString() ?? string.Empty;
 
                 switch (action)
                 {
@@ -123,9 +172,32 @@ namespace MasterServicePro.Forms
                         SendMessage(this.Handle, 0x112, 0xf012, 0);
                         break;
 
+                    case "minimize":
+                        this.WindowState = FormWindowState.Minimized;
+                        break;
+
+                    case "maximize":
+                        if (this.WindowState == FormWindowState.Maximized)
+                            this.WindowState = FormWindowState.Normal;
+                        else
+                            this.WindowState = FormWindowState.Maximized;
+                        break;
+
                     case "close":
                         this.DialogResult = DialogResult.Cancel;
                         this.Close();
+                        break;
+
+                    case "openUrl":
+                        try
+                        {
+                            string targetUrl = message.url;
+                            if (!string.IsNullOrEmpty(targetUrl))
+                            {
+                                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(targetUrl) { UseShellExecute = true });
+                            }
+                        }
+                        catch { }
                         break;
 
                     case "activateKey":
@@ -153,6 +225,23 @@ namespace MasterServicePro.Forms
 
         private async Task HandleReadyAsync()
         {
+            // Inject logo Base64 as guarantee
+            try
+            {
+                string logoPath = Path.Combine(Application.StartupPath, "LogoMasterServicePro.png");
+                if (!File.Exists(logoPath))
+                {
+                    logoPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\LogoMasterServicePro.png");
+                }
+                if (File.Exists(logoPath))
+                {
+                    byte[] imageBytes = File.ReadAllBytes(logoPath);
+                    string base64String = Convert.ToBase64String(imageBytes);
+                    await webView.CoreWebView2.ExecuteScriptAsync($"loadLogo('{base64String}')");
+                }
+            }
+            catch { }
+
             string key = string.IsNullOrWhiteSpace(initialKey) ? LicenseService.GetStoredLicenseKey() : initialKey;
 
             if (string.IsNullOrWhiteSpace(key))
