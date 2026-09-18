@@ -74,7 +74,7 @@ namespace MasterServicePro.Forms
             }
             catch (System.Runtime.InteropServices.COMException ex) when ((uint)ex.ErrorCode == 0x80004004 || (uint)ex.ErrorCode == 0x80040154)
             {
-                // Ignorar erros de form fechado ou WebView2 destruído prematuramente
+                // Ignore errors if form closed or WebView2 destroyed prematurely
             }
             catch (Exception ex)
             {
@@ -146,12 +146,14 @@ namespace MasterServicePro.Forms
                     entradas = _repo.GetTotalPorPeriodo(dataAbertura, agora, "Entrada");
                     saidas = _repo.GetTotalPorPeriodo(dataAbertura, agora, "Saída");
                     
-                    pix = _repo.GetTotalPorFormaPagamento(dataAbertura, agora, "Pix");
-                    din = _repo.GetTotalPorFormaPagamento(dataAbertura, agora, "Dinheiro");
-                    cred = _repo.GetTotalPorFormaPagamento(dataAbertura, agora, "Cartão de Crédito");
-                    deb = _repo.GetTotalPorFormaPagamento(dataAbertura, agora, "Cartão de Débito");
+                    pix = _repo.GetEntradasPorFormaPagamento(dataAbertura, agora, "Pix");
+                    din = _repo.GetEntradasPorFormaPagamento(dataAbertura, agora, "Dinheiro");
+                    cred = _repo.GetEntradasPorFormaPagamento(dataAbertura, agora, "Cartão de Crédito");
+                    deb = _repo.GetEntradasPorFormaPagamento(dataAbertura, agora, "Cartão de Débito");
 
-                    dinheiroEmCaixa = saldoInicial + din - saidas;
+                    // Physical cash in drawer = Opening balance + Cash in - Cash out
+                    decimal saidasDinheiro = _repo.GetSaidasPorFormaPagamento(dataAbertura, agora, "Dinheiro");
+                    dinheiroEmCaixa = saldoInicial + din - saidasDinheiro;
                 }
 
                 var dynStats = new {
@@ -182,16 +184,35 @@ namespace MasterServicePro.Forms
                 var list = new List<object>();
                 foreach (DataRow row in dt.Rows)
                 {
+                    decimal valorVal = 0m;
+                    if (row.Table.Columns.Contains("Valor") && row["Valor"] != DBNull.Value)
+                    {
+                        decimal.TryParse(row["Valor"].ToString(), out valorVal);
+                    }
+
+                    string dataStr = null;
+                    if (row.Table.Columns.Contains("Data") && row["Data"] != DBNull.Value)
+                    {
+                        if (DateTime.TryParse(row["Data"].ToString(), out DateTime dtVal))
+                            dataStr = dtVal.ToString("yyyy-MM-dd HH:mm:ss");
+                    }
+
                     list.Add(new {
                         Tipo = row.Table.Columns.Contains("Tipo") && row["Tipo"] != DBNull.Value ? row["Tipo"].ToString() : "",
                         Categoria = row.Table.Columns.Contains("Categoria") && row["Categoria"] != DBNull.Value ? row["Categoria"].ToString() : "",
-                        Valor = row.Table.Columns.Contains("Valor") && row["Valor"] != DBNull.Value ? Convert.ToDecimal(row["Valor"]) : 0m,
+                        Valor = valorVal,
                         FormaPagamento = row.Table.Columns.Contains("FormaPagamento") && row["FormaPagamento"] != DBNull.Value ? row["FormaPagamento"].ToString() : "",
                         Descricao = row.Table.Columns.Contains("Descricao") && row["Descricao"] != DBNull.Value ? row["Descricao"].ToString() : "",
-                        Data = row.Table.Columns.Contains("Data") && row["Data"] != DBNull.Value ? Convert.ToDateTime(row["Data"]).ToString("o") : null
+                        Data = dataStr
                     });
                 }
-                var msg = new { action = "load_extrato", data = list };
+                var msg = new { 
+                    action = "load_extrato", 
+                    data = list,
+                    filterDate = date.ToString("yyyy-MM-dd"),
+                    title = $"Extrato Financeiro ({date:dd/MM/yyyy})",
+                    count = list.Count
+                };
                 webView.CoreWebView2.PostWebMessageAsString(JsonConvert.SerializeObject(msg));
             }
             catch (Exception ex)
@@ -217,10 +238,10 @@ namespace MasterServicePro.Forms
                     data.Add(item.Value);
                 }
 
-                decimal pmDinheiro = _repo.GetTotalPorFormaPagamento(inicio, fim, "Dinheiro");
-                decimal pmPix = _repo.GetTotalPorFormaPagamento(inicio, fim, "Pix");
-                decimal pmCredito = _repo.GetTotalPorFormaPagamento(inicio, fim, "Cartão de Crédito");
-                decimal pmDebito = _repo.GetTotalPorFormaPagamento(inicio, fim, "Cartão de Débito");
+                decimal pmDinheiro = _repo.GetEntradasPorFormaPagamento(inicio, fim, "Dinheiro");
+                decimal pmPix = _repo.GetEntradasPorFormaPagamento(inicio, fim, "Pix");
+                decimal pmCredito = _repo.GetEntradasPorFormaPagamento(inicio, fim, "Cartão de Crédito");
+                decimal pmDebito = _repo.GetEntradasPorFormaPagamento(inicio, fim, "Cartão de Débito");
 
                 var msg = new {
                     action = "load_charts",
@@ -329,12 +350,14 @@ namespace MasterServicePro.Forms
                 decimal entradas = _repo.GetTotalPorPeriodo(inicio, fim, "Entrada");
                 decimal saidas = _repo.GetTotalPorPeriodo(inicio, fim, "Saída");
 
-                decimal pix = _repo.GetTotalPorFormaPagamento(inicio, fim, "Pix");
-                decimal din = _repo.GetTotalPorFormaPagamento(inicio, fim, "Dinheiro");
-                decimal cred = _repo.GetTotalPorFormaPagamento(inicio, fim, "Cartão de Crédito");
-                decimal deb = _repo.GetTotalPorFormaPagamento(inicio, fim, "Cartão de Débito");
+                decimal pix = _repo.GetEntradasPorFormaPagamento(inicio, fim, "Pix");
+                decimal din = _repo.GetEntradasPorFormaPagamento(inicio, fim, "Dinheiro");
+                decimal cred = _repo.GetEntradasPorFormaPagamento(inicio, fim, "Cartão de Crédito");
+                decimal deb = _repo.GetEntradasPorFormaPagamento(inicio, fim, "Cartão de Débito");
 
-                decimal dinheiroEmCaixa = saldoInicial + din - saidas;
+                // Physical cash in drawer = Opening balance + Cash in - Cash out
+                decimal saidasDinheiro = _repo.GetSaidasPorFormaPagamento(inicio, fim, "Dinheiro");
+                decimal dinheiroEmCaixa = saldoInicial + din - saidasDinheiro;
 
                 var dynStats = new {
                     caixaAberto = false, 
@@ -357,17 +380,41 @@ namespace MasterServicePro.Forms
                 var list = new List<object>();
                 foreach (DataRow row in dt.Rows)
                 {
+                    decimal valorVal = 0m;
+                    if (row.Table.Columns.Contains("Valor") && row["Valor"] != DBNull.Value)
+                    {
+                        decimal.TryParse(row["Valor"].ToString(), out valorVal);
+                    }
+
+                    string dataStr = null;
+                    if (row.Table.Columns.Contains("Data") && row["Data"] != DBNull.Value)
+                    {
+                        if (DateTime.TryParse(row["Data"].ToString(), out DateTime dtVal))
+                            dataStr = dtVal.ToString("yyyy-MM-dd HH:mm:ss");
+                    }
+
                     list.Add(new {
                         Tipo = row.Table.Columns.Contains("Tipo") && row["Tipo"] != DBNull.Value ? row["Tipo"].ToString() : "",
                         Categoria = row.Table.Columns.Contains("Categoria") && row["Categoria"] != DBNull.Value ? row["Categoria"].ToString() : "",
-                        Valor = row.Table.Columns.Contains("Valor") && row["Valor"] != DBNull.Value ? Convert.ToDecimal(row["Valor"]) : 0m,
+                        Valor = valorVal,
                         FormaPagamento = row.Table.Columns.Contains("FormaPagamento") && row["FormaPagamento"] != DBNull.Value ? row["FormaPagamento"].ToString() : "",
                         Descricao = row.Table.Columns.Contains("Descricao") && row["Descricao"] != DBNull.Value ? row["Descricao"].ToString() : "",
-                        Data = row.Table.Columns.Contains("Data") && row["Data"] != DBNull.Value ? Convert.ToDateTime(row["Data"]).ToString("o") : null
+                        Data = dataStr
                     });
                 }
 
-                var msgExtrato = new { action = "load_extrato", data = list };
+                // Send informative title and filterDate for historic session
+                string sessionTitle = inicio.Date == fim.Date 
+                    ? $"Extrato da Sessao ({inicio:dd/MM/yyyy})" 
+                    : $"Extrato da Sessao ({inicio:dd/MM/yyyy} a {fim:dd/MM/yyyy})";
+
+                var msgExtrato = new { 
+                    action = "load_extrato", 
+                    data = list,
+                    filterDate = inicio.ToString("yyyy-MM-dd"),
+                    title = sessionTitle,
+                    count = list.Count
+                };
                 webView.CoreWebView2.PostWebMessageAsString(JsonConvert.SerializeObject(msgExtrato));
             }
             catch { }

@@ -26,10 +26,11 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-app); color: var(--text-body); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
+        body { background-color: var(--bg-app); color: var(--text-body); display: flex; flex-direction: column; }
 
         /* HEADER */
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 24px 32px; background-color: var(--bg-card); border-bottom: 1px solid var(--element-border); }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 24px 32px; background-color: var(--bg-card); border-bottom: 1px solid var(--element-border); flex-shrink: 0; }
         .title-area h1 { color: var(--text-title); font-size: 24px; font-weight: 600; }
         .title-area p { color: var(--warning); font-size: 14px; font-weight: 600; margin-top: 4px; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background-color: rgba(245, 158, 11, 0.1); border-radius: 6px; }
 
@@ -46,7 +47,7 @@
         .btn-primary { background-color: var(--primary); color: white; }
 
         /* CONTENT */
-        .content { flex: 1; padding: 24px 32px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; }
+        .content { flex: 1 1 0; min-height: 0; padding: 24px 32px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; }
 
         /* STATS GRID */
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
@@ -70,7 +71,7 @@
         .chart-body { flex: 1; position: relative; }
 
         /* TABLE */
-        .table-container { background-color: var(--bg-card); border-radius: 12px; border: 1px solid var(--element-border); overflow: hidden; }
+        .table-container { background-color: var(--bg-card); border-radius: 12px; border: 1px solid var(--element-border); overflow: hidden; margin-bottom: 40px; }
         .table-toolbar { padding: 16px 20px; display: flex; gap: 16px; border-bottom: 1px solid var(--element-border); align-items: center; }
         .table-toolbar input { background-color: var(--bg-sidebar); border: 1px solid var(--element-border); color: var(--text-title); padding: 8px 12px; border-radius: 6px; font-size: 14px; }
         
@@ -83,26 +84,33 @@
         .type-badge.entrada { background-color: rgba(16, 185, 129, 0.1); color: var(--success); }
         .type-badge.saida { background-color: rgba(239, 68, 68, 0.1); color: var(--danger); }
 
+        .badge-count { font-size: 11px; font-weight: 600; color: var(--primary); background-color: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.25); padding: 3px 8px; border-radius: 6px; }
+
         /* SCROLLBAR */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        .content {
+            scrollbar-width: thin;
+            scrollbar-color: #475569 var(--bg-app);
+        }
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
         ::-webkit-scrollbar-track { background: var(--bg-app); }
-        ::-webkit-scrollbar-thumb { background: var(--element-border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 5px; border: 2px solid var(--bg-app); }
+        ::-webkit-scrollbar-thumb:hover { background: #64748B; }
 
         /* Responsividade 1366x768 (Laptops) */
         @media (max-width: 1400px), (max-height: 800px) {
-            .header { padding: 15px 20px; }
-            .content { padding: 15px 20px; gap: 15px; }
-            .header h1 { font-size: 20px; }
-            .btn { padding: 8px 12px; font-size: 12px; }
-            .stat-card { padding: 15px; }
-            .stat-title { font-size: 11px; margin-bottom: 5px; }
-            .stat-value { font-size: 20px; }
-            .charts-container { height: 250px; min-height: 250px; gap: 15px; flex-shrink: 0; }
-            .chart-card { padding: 15px; }
-            .chart-header { margin-bottom: 10px; font-size: 14px; }
-            .table-toolbar { padding: 12px 15px; }
-            th { padding: 12px 15px; font-size: 11px; }
-            td { padding: 12px 15px; font-size: 13px; }
+            .header { padding: 10px 18px; }
+            .content { padding: 10px 18px; gap: 10px; }
+            .header h1 { font-size: 18px; }
+            .btn { padding: 6px 10px; font-size: 12px; }
+            .stat-card { padding: 10px; }
+            .stat-title { font-size: 10px; margin-bottom: 3px; }
+            .stat-value { font-size: 17px; }
+            .charts-container { height: 160px; min-height: 160px; gap: 10px; flex-shrink: 0; }
+            .chart-card { padding: 10px; }
+            .chart-header { margin-bottom: 6px; font-size: 12px; }
+            .table-toolbar { padding: 8px 12px; }
+            th { padding: 8px 12px; font-size: 11px; }
+            td { padding: 8px 12px; font-size: 12px; }
         }
     </style>
 </head>
@@ -164,7 +172,7 @@
         </div>
 
         <!-- CHARTS -->
-        <div class="charts-container">
+        <div class="charts-container" id="charts-container">
             <div class="chart-card">
                 <div class="chart-header">Faturamento - Últimos 7 Dias</div>
                 <div class="chart-body">
@@ -186,9 +194,15 @@
         <!-- EXTRACT -->
         <div class="table-container">
             <div class="table-toolbar">
-                <span style="font-weight: 600; color: var(--text-title);">Extrato Financeiro do Dia</span>
-                <input type="date" id="dtFiltro" onchange="action('filtrar_extrato', this.value)" style="margin-left: auto;">
-                <button class="btn btn-secondary" onclick="action('filtrar_extrato', document.getElementById('dtFiltro').value)"><i class="ri-search-line"></i> Filtrar</button>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span id="lbl-extrato-title" style="font-weight: 600; color: var(--text-title);">Extrato Financeiro do Dia</span>
+                    <span id="lbl-extrato-count" class="badge-count" style="display: none;">0 lançamentos</span>
+                </div>
+                <div style="margin-left: auto; display: flex; gap: 8px; align-items: center;">
+                    <button class="btn btn-secondary" id="btn-toggle-charts" onclick="toggleCharts()"><i class="ri-line-chart-line"></i> Ocultar Gráficos</button>
+                    <input type="date" id="dtFiltro" onchange="action('filtrar_extrato', this.value)">
+                    <button class="btn btn-secondary" onclick="action('filtrar_extrato', document.getElementById('dtFiltro').value)"><i class="ri-search-line"></i> Filtrar</button>
+                </div>
             </div>
             <table>
                 <thead>
@@ -219,7 +233,26 @@
 
         function formatDate(str) {
             if (!str) return '-';
-            try { return new Date(str).toLocaleString('pt-BR'); } catch(e) { return str; }
+            try { 
+                const s = str.replace(' ', 'T');
+                const d = new Date(s);
+                return isNaN(d.getTime()) ? str : d.toLocaleString('pt-BR'); 
+            } catch(e) { 
+                return str; 
+            }
+        }
+
+        function toggleCharts() {
+            const container = document.getElementById('charts-container');
+            const btn = document.getElementById('btn-toggle-charts');
+            if (!container || !btn) return;
+            if (container.style.display === 'none') {
+                container.style.display = 'grid';
+                btn.innerHTML = '<i class="ri-line-chart-line"></i> Ocultar Gráficos';
+            } else {
+                container.style.display = 'none';
+                btn.innerHTML = '<i class="ri-line-chart-line"></i> Exibir Gráficos';
+            }
         }
 
         function initCharts() {
@@ -285,7 +318,16 @@
                     const msg = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
                     
                     if (msg.action === 'load_stats') renderStats(msg.data);
-                    if (msg.action === 'load_extrato') renderExtrato(msg.data);
+                    if (msg.action === 'load_extrato') {
+                        renderExtrato(msg.data);
+                        if (msg.filterDate) {
+                            document.getElementById('dtFiltro').value = msg.filterDate;
+                        }
+                        if (msg.title) {
+                            const titleEl = document.getElementById('lbl-extrato-title');
+                            if (titleEl) titleEl.innerText = msg.title;
+                        }
+                    }
                     if (msg.action === 'load_charts') renderCharts(msg.data);
 
                 } catch(e) { console.error(e); }
@@ -300,7 +342,7 @@
             const btnRetirar = document.querySelector('button[onclick="action(\'retirar_dinheiro\')"]');
             const btnHistorico = document.querySelector('button[onclick="action(\'historico\')"]');
 
-            // Botões de entrada/saída ficam visíveis para todos se o caixa estiver aberto
+            // Action buttons visible when cash register is open
             if (d.caixaAberto) {
                 if (btnAdd) btnAdd.style.display = 'flex';
                 if (btnRetirar) btnRetirar.style.display = 'flex';
@@ -309,7 +351,7 @@
                 if (btnRetirar) btnRetirar.style.display = 'none';
             }
 
-            // Histórico fica restrito a administradores
+            // History button restricted to admins
             if (!d.isAdmin) {
                 if (btnHistorico) btnHistorico.style.display = 'none';
             } else {
@@ -343,18 +385,25 @@
 
         function renderExtrato(data) {
             const tbody = document.getElementById('tbody-extrato');
+            const countEl = document.getElementById('lbl-extrato-count');
             
-            if (!data || data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">Nenhuma movimentação neste dia.</td></tr>`;
+            if (countEl) {
+                const total = (data && Array.isArray(data)) ? data.length : 0;
+                countEl.innerText = `${total} lançamento${total === 1 ? '' : 's'}`;
+                countEl.style.display = 'inline-block';
+            }
+
+            if (!data || !Array.isArray(data) || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">Nenhuma movimentação neste dia ou período.</td></tr>`;
                 return;
             }
 
             let html = '';
             data.forEach(r => {
-                const isEntrada = r.Tipo === 'Entrada';
+                const isEntrada = (r.Tipo || '').toLowerCase() === 'entrada';
                 html += `
                     <tr>
-                        <td><span class="type-badge ${isEntrada ? 'entrada' : 'saida'}"><i class="${isEntrada ? 'ri-arrow-up-line' : 'ri-arrow-down-line'}"></i> ${r.Tipo}</span></td>
+                        <td><span class="type-badge ${isEntrada ? 'entrada' : 'saida'}"><i class="${isEntrada ? 'ri-arrow-up-line' : 'ri-arrow-down-line'}"></i> ${r.Tipo || '-'}</span></td>
                         <td style="font-weight: 500;">${r.Categoria || '-'}</td>
                         <td style="font-weight: 600; color: var(--${isEntrada ? 'success' : 'danger'});">${isEntrada ? '+' : '-'} ${formatCurrency(r.Valor)}</td>
                         <td>${r.FormaPagamento || '-'}</td>

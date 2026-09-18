@@ -75,15 +75,19 @@ namespace MasterServicePro.Services
                     return;
                 }
 
-                // Compilar dados do caixa
+                // Compile cash data
                 decimal totalVendas = repo.GetTotalPorPeriodo(caixa.DataAbertura, DateTime.Now, "Entrada");
                 decimal totalSaidas = repo.GetTotalPorPeriodo(caixa.DataAbertura, DateTime.Now, "Saída");
                 decimal saldoFinal = caixa.ValorAbertura + totalVendas - totalSaidas;
 
-                decimal pmPix = repo.GetTotalPorFormaPagamento(caixa.DataAbertura, DateTime.Now, "Pix");
-                decimal pmDinheiro = repo.GetTotalPorFormaPagamento(caixa.DataAbertura, DateTime.Now, "Dinheiro");
-                decimal pmCredito = repo.GetTotalPorFormaPagamento(caixa.DataAbertura, DateTime.Now, "Cartão de Crédito");
-                decimal pmDebito = repo.GetTotalPorFormaPagamento(caixa.DataAbertura, DateTime.Now, "Cartão de Débito");
+                decimal pmPix = repo.GetEntradasPorFormaPagamento(caixa.DataAbertura, DateTime.Now, "Pix");
+                decimal pmDinheiro = repo.GetEntradasPorFormaPagamento(caixa.DataAbertura, DateTime.Now, "Dinheiro");
+                decimal pmCredito = repo.GetEntradasPorFormaPagamento(caixa.DataAbertura, DateTime.Now, "Cartão de Crédito");
+                decimal pmDebito = repo.GetEntradasPorFormaPagamento(caixa.DataAbertura, DateTime.Now, "Cartão de Débito");
+
+                // Physical cash in drawer
+                decimal saidasDinheiro = repo.GetSaidasPorFormaPagamento(caixa.DataAbertura, DateTime.Now, "Dinheiro");
+                decimal dinheiroEmCaixa = caixa.ValorAbertura + pmDinheiro - saidasDinheiro;
 
                 string mensagem = $"📊 *Fechamento de Caixa - MasterServicePro*\n\n" +
                                   $"Olá {config.NomeAdministrador},\n" +
@@ -92,7 +96,8 @@ namespace MasterServicePro.Services
                                   $"💵 Saldo Inicial: *{caixa.ValorAbertura:C2}*\n" +
                                   $"🟢 Entradas (Vendas/OS): *{totalVendas:C2}*\n" +
                                   $"🔴 Saídas (Despesas/Sangrias): *{totalSaidas:C2}*\n" +
-                                  $"🏦 *Saldo Final: {saldoFinal:C2}*\n\n" +
+                                  $"💰 Dinheiro Físico no Caixa: *{dinheiroEmCaixa:C2}*\n" +
+                                  $"🏦 *Saldo Geral: {saldoFinal:C2}*\n\n" +
                                   $"*Entradas por Forma de Pagamento:*\n" +
                                   $"🔸 Pix: {pmPix:C2}\n" +
                                   $"🔸 Dinheiro: {pmDinheiro:C2}\n" +

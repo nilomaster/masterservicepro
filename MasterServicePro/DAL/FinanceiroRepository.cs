@@ -330,29 +330,36 @@ namespace MasterServicePro.DAL
             return res != DBNull.Value ? Convert.ToDecimal(res) : 0;
         }
 
-        public decimal GetTotalPorFormaPagamento(DateTime inicio, DateTime fim, string forma)
+        // Calculate gross entradas by payment method
+        public decimal GetEntradasPorFormaPagamento(DateTime inicio, DateTime fim, string forma)
         {
             string query = "SELECT SUM(Valor) FROM Financeiro WHERE Tipo = 'Entrada' AND FormaPagamento = @Forma AND Data BETWEEN @inicio AND @fim";
-            string querySaida = "SELECT SUM(Valor) FROM Financeiro WHERE Tipo = 'Saída' AND FormaPagamento = @Forma AND Data BETWEEN @inicio AND @fim";
-            
-            SqlParameter[] pE = {
+            SqlParameter[] p = {
                 new SqlParameter("@Forma", forma),
                 new SqlParameter("@inicio", inicio.Date),
                 new SqlParameter("@fim", fim.Date.AddDays(1).AddSeconds(-1))
             };
-            SqlParameter[] pS = {
+            object res = db.ExecuteScalar(query, p);
+            return res != DBNull.Value ? Convert.ToDecimal(res) : 0;
+        }
+
+        // Calculate gross saidas by payment method
+        public decimal GetSaidasPorFormaPagamento(DateTime inicio, DateTime fim, string forma)
+        {
+            string query = "SELECT SUM(Valor) FROM Financeiro WHERE Tipo = 'Saída' AND FormaPagamento = @Forma AND Data BETWEEN @inicio AND @fim";
+            SqlParameter[] p = {
                 new SqlParameter("@Forma", forma),
                 new SqlParameter("@inicio", inicio.Date),
                 new SqlParameter("@fim", fim.Date.AddDays(1).AddSeconds(-1))
             };
-            
-            object resE = db.ExecuteScalar(query, pE);
-            object resS = db.ExecuteScalar(querySaida, pS);
-            
-            decimal entradas = resE != DBNull.Value ? Convert.ToDecimal(resE) : 0;
-            decimal saidas = resS != DBNull.Value ? Convert.ToDecimal(resS) : 0;
-            
-            return entradas - saidas;
+            object res = db.ExecuteScalar(query, p);
+            return res != DBNull.Value ? Convert.ToDecimal(res) : 0;
+        }
+
+        // Calculate net balance by payment method (entradas - saidas)
+        public decimal GetTotalPorFormaPagamento(DateTime inicio, DateTime fim, string forma)
+        {
+            return GetEntradasPorFormaPagamento(inicio, fim, forma) - GetSaidasPorFormaPagamento(inicio, fim, forma);
         }
         public Dictionary<DateTime, decimal> GetVendasUltimos7Dias()
         {
