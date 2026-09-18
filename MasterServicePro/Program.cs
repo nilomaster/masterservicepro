@@ -12,19 +12,6 @@ namespace MasterServicePro
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            try
-            {
-                Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-                ConfigurationSection section = config.GetSection("connectionStrings");
-                if (section != null && !section.SectionInformation.IsProtected)
-                {
-                    section.SectionInformation.ProtectSection("DataProtectionConfigurationProvider");
-                    section.SectionInformation.ForceSave = true;
-                    config.Save(ConfigurationSaveMode.Modified);
-                }
-            }
-            catch { }
-
             // Verifica conexao com o banco de dados antes de iniciar o aplicativo
             try
             {
@@ -33,9 +20,9 @@ namespace MasterServicePro
                     conn.Open();
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                MessageBox.Show("Conexao com banco de dados falhou!!", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Conexao com banco de dados falhou!!\n\nDetalhes do erro: " + ex.Message, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return; // Sai do aplicativo sem tentar abrir o login
             }
 

@@ -6,16 +6,14 @@
     <title>Estorno</title>
     <style>
         :root {
-            --bg-body: #1a1d24;
-            --bg-card: #232732;
+            --bg-body: #131722;
+            --bg-card: #1e222d;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --primary: #3b82f6;
             --primary-hover: #2563eb;
             --danger: #ef4444;
             --danger-hover: #dc2626;
-            --success: #10b981;
-            --success-hover: #059669;
             --border: #334155;
             --input-bg: #0f172a;
         }
@@ -24,7 +22,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
 
         body {
@@ -34,8 +32,10 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+            width: 100vw;
             overflow: hidden;
-            padding: 10px;
+            padding: 0;
+            user-select: none;
         }
 
         .modal-container {
@@ -44,87 +44,134 @@
             display: flex;
             flex-direction: column;
             background: var(--bg-card);
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            border: 1px solid var(--border);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
             text-align: left;
+            overflow: hidden;
         }
 
         .modal-header {
-            padding: 20px 25px;
+            padding: 16px 22px;
             border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(0, 0, 0, 0.3);
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
+            background: rgba(15, 23, 42, 0.6);
+            flex-shrink: 0;
         }
 
         .modal-header h2 {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
             margin: 0;
             color: var(--text-main);
-            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .close-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 18px;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
         }
 
         .modal-body {
-            padding: 25px;
+            padding: 20px 22px;
             flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            gap: 14px;
+            overflow-y: auto;
+        }
+
+        /* Custom scrollbar */
+        .modal-body::-webkit-scrollbar {
+            width: 6px;
+        }
+        .modal-body::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        .modal-body::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+        .modal-body::-webkit-scrollbar-thumb:hover {
+            background: #475569;
         }
 
         .form-group {
-            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
         .form-label {
             font-size: 13px;
+            font-weight: 500;
             color: var(--text-muted);
-            margin-bottom: 5px;
-            display: block;
         }
 
         .form-control {
             width: 100%;
-            padding: 12px 15px;
+            padding: 10px 12px;
             background: var(--input-bg);
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 6px;
             color: var(--text-main);
-            font-size: 15px;
+            font-size: 14px;
             transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
         }
 
         .form-control:focus {
-            outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+        }
+
+        select.form-control {
+            cursor: pointer;
+        }
+
+        select.form-control option {
+            background-color: #0f172a;
+            color: #f8fafc;
+            padding: 8px;
         }
 
         .modal-footer {
-            padding: 20px 25px;
+            padding: 14px 22px;
             border-top: 1px solid var(--border);
             display: flex;
             justify-content: flex-end;
-            gap: 15px;
-            background: rgba(0, 0, 0, 0.3);
-            border-bottom-left-radius: 12px;
-            border-bottom-right-radius: 12px;
+            align-items: center;
+            gap: 12px;
+            background: rgba(15, 23, 42, 0.6);
+            flex-shrink: 0;
         }
 
         .btn {
-            padding: 10px 20px;
+            padding: 10px 18px;
             border: none;
-            border-radius: 8px;
-            font-size: 14px;
+            border-radius: 6px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
             transition: all 0.2s ease;
         }
 
@@ -135,47 +182,49 @@
         }
 
         .btn-cancel:hover {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.06);
             color: var(--text-main);
+            border-color: #475569;
         }
 
         .btn-danger {
             background: var(--danger);
-            color: white;
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
         }
 
         .btn-danger:hover {
             background: var(--danger-hover);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.45);
         }
 
         .error-msg {
             color: var(--danger);
-            font-size: 13px;
-            margin-top: 8px;
+            font-size: 12px;
+            margin-top: 4px;
             display: none;
         }
-
     </style>
 </head>
 <body>
 
     <div class="modal-container">
         <div class="modal-header">
-            <h2 id="lblTitle">Aguarde...</h2>
+            <h2 id="lblTitle">Cancelar Venda</h2>
+            <button type="button" class="close-btn" id="btnClose" title="Fechar (Esc)">✕</button>
         </div>
         <div class="modal-body">
             
             <div class="form-group" id="groupDestino" style="display: none;">
-                <label class="form-label">Destino do Valor:</label>
+                <label class="form-label" for="selDestino">Destino do Valor:</label>
                 <select id="selDestino" class="form-control">
                     <option value="SALDO">Gerar Crédito (Saldo na conta do cliente)</option>
-                    <option value="SANGRIA">Devolver Dinheiro (Sangria no Caixa)</option>
+                    <option value="SANGRIA">Devolver Dinheiro (Saída do Caixa)</option>
                 </select>
             </div>
 
             <div class="form-group" id="groupFormaPagamento" style="display: none;">
-                <label class="form-label">Forma de Pagamento (Devolução):</label>
+                <label class="form-label" for="selFormaPagamento">Forma de Pagamento (Devolução):</label>
                 <select id="selFormaPagamento" class="form-control">
                     <option value="Dinheiro">Dinheiro</option>
                     <option value="Pix">Pix</option>
@@ -186,23 +235,33 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label" id="lblInputTitle">Motivo do Estorno:</label>
+                <label class="form-label" id="lblInputTitle" for="txtInput">Motivo do Estorno:</label>
                 <input type="text" id="txtInput" class="form-control" autocomplete="off">
                 <div id="errorMsg" class="error-msg">Por favor, preencha este campo.</div>
             </div>
         </div>
         <div class="modal-footer">
-            <button id="btnCancel" class="btn btn-cancel">CANCELAR</button>
-            <button id="btnConfirm" class="btn btn-danger">ESTORNAR</button>
+            <button id="btnCancel" class="btn btn-cancel" type="button">Cancelar (Esc)</button>
+            <button id="btnConfirm" class="btn btn-danger" type="button">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                Aprovar Cancelamento
+            </button>
         </div>
     </div>
 
     <script>
+        // Setup WebView2 message receiver
         window.chrome.webview.addEventListener('message', event => {
             const data = event.data;
             if (data.action === "LOAD_DATA") {
-                document.getElementById('lblTitle').innerText = data.title;
-                document.getElementById('txtInput').placeholder = data.placeholder;
+                if (data.title) {
+                    document.getElementById('lblTitle').innerText = data.title;
+                }
+                if (data.placeholder) {
+                    document.getElementById('txtInput').placeholder = data.placeholder;
+                }
                 
                 if (data.showDestino) {
                     document.getElementById('selDestino').innerHTML = `
@@ -216,11 +275,13 @@
                         <option value="SANGRIA">Devolver Dinheiro (Saída do Caixa)</option>
                     `;
                 }
-                document.getElementById('groupDestino').style.display = 'block';
+                document.getElementById('groupDestino').style.display = 'flex';
                 
                 toggleFormaPagamento();
                 
-                document.getElementById('txtInput').focus();
+                setTimeout(() => {
+                    document.getElementById('txtInput').focus();
+                }, 100);
             }
         });
 
@@ -230,23 +291,32 @@
             const selDestino = document.getElementById('selDestino');
             const groupFormaPagamento = document.getElementById('groupFormaPagamento');
             if (selDestino.value === 'SANGRIA') {
-                groupFormaPagamento.style.display = 'block';
+                groupFormaPagamento.style.display = 'flex';
             } else {
                 groupFormaPagamento.style.display = 'none';
             }
         }
 
-        document.getElementById('btnCancel').addEventListener('click', () => {
+        function cancel() {
             window.chrome.webview.postMessage({ action: "CANCEL" });
-        });
+        }
+
+        document.getElementById('btnCancel').addEventListener('click', cancel);
+        document.getElementById('btnClose').addEventListener('click', cancel);
 
         document.getElementById('btnConfirm').addEventListener('click', () => {
             confirm();
         });
 
-        document.getElementById('txtInput').addEventListener('keypress', (e) => {
+        document.getElementById('txtInput').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 confirm();
+            }
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                cancel();
             }
         });
 

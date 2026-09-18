@@ -18,6 +18,16 @@ namespace MasterServicePro.Forms
         {
             _showDestino = showDestino;
             InitializeComponent();
+            this.KeyPreview = true;
+            this.KeyDown += (s, e) =>
+            {
+                // Close on Escape key
+                if (e.KeyCode == Keys.Escape)
+                {
+                    this.DialogResult = DialogResult.Cancel;
+                    this.Close();
+                }
+            };
             this.Shown += FrmPromptMotivoEstorno_Shown;
         }
 
@@ -33,13 +43,12 @@ namespace MasterServicePro.Forms
             this.webView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.webView.Location = new System.Drawing.Point(0, 0);
             this.webView.Name = "webView";
-            this.webView.Size = new System.Drawing.Size(500, 320);
+            this.webView.Size = new System.Drawing.Size(520, 480);
             this.webView.TabIndex = 0;
             
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.BackColor = System.Drawing.Color.FromArgb(51, 65, 85);
-            this.ClientSize = new System.Drawing.Size(500, 320);
+            this.ClientSize = new System.Drawing.Size(520, 480);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.None;
             this.Padding = new Padding(1);
