@@ -106,6 +106,71 @@
             color: var(--text-secondary);
         }
 
+        /* License status badge and login actions */
+        .login-actions-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .license-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            background: rgba(67, 97, 238, 0.08);
+            color: #93c5fd;
+            border: 1px solid rgba(67, 97, 238, 0.22);
+            cursor: default;
+            white-space: nowrap;
+        }
+
+        .license-badge .badge-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 13px;
+            height: 13px;
+        }
+
+        .license-badge.checking .badge-icon {
+            border: 1.8px solid rgba(147, 197, 253, 0.25);
+            border-top-color: #60a5fa;
+            border-radius: 50%;
+            animation: spinBadge 0.8s linear infinite;
+        }
+
+        @keyframes spinBadge {
+            to { transform: rotate(360deg); }
+        }
+
+        .license-badge.active {
+            background: rgba(16, 185, 129, 0.12);
+            color: #34d399;
+            border-color: rgba(16, 185, 129, 0.3);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.12);
+            animation: badgePop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes badgePop {
+            0% { transform: scale(0.95); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .license-badge.warning {
+            background: rgba(239, 68, 68, 0.12);
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
         .form-group {
             display: flex;
             flex-direction: column;
@@ -177,19 +242,20 @@
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 14px;
+            padding: 12px 20px;
             border-radius: 10px;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
             box-shadow: 0 4px 15px var(--primary-glow);
             position: relative;
             overflow: hidden;
+            flex-shrink: 0;
         }
 
         .btn-login:hover {
@@ -286,10 +352,16 @@
 
             <div class="error-message" id="lblError">Usuário ou senha inválidos</div>
 
-            <button type="submit" class="btn-login" id="btnLogin" style="margin-top: 20px;">
-                ENTRAR
-                <i class="ph-bold ph-arrow-right"></i>
-            </button>
+            <div class="login-actions-row">
+                <button type="submit" class="btn-login" id="btnLogin">
+                    ENTRAR
+                    <i class="ph-bold ph-arrow-right"></i>
+                </button>
+                <div class="license-badge checking" id="licenseBadge" title="Verificando licenca...">
+                    <span class="badge-icon" id="licenseIcon"></span>
+                    <span id="licenseText">Verificando licença...</span>
+                </div>
+            </div>
         </form>
 
         <div class="footer">
@@ -362,6 +434,32 @@
                 img.style.display = 'block';
                 document.getElementById('fallbackLogo').style.display = 'none';
             }
+        }
+
+        // Called from C# to update license status indicator
+        function setLicenseStatus(data) {
+            const badge = document.getElementById('licenseBadge');
+            const icon = document.getElementById('licenseIcon');
+            const text = document.getElementById('licenseText');
+            if (!badge || !icon || !text) return;
+
+            setTimeout(() => {
+                if (data && data.isLicensed) {
+                    badge.className = 'license-badge active';
+                    icon.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                    text.innerText = 'Sistema Licenciado';
+
+                    let tooltip = 'Sistema devidamente licenciado e ativo';
+                    if (data.cliente) tooltip += ' • ' + data.cliente;
+                    if (data.vencimento) tooltip += ' • Validade: ' + data.vencimento;
+                    badge.title = tooltip;
+                } else {
+                    badge.className = 'license-badge warning';
+                    icon.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
+                    text.innerText = 'Licença Pendente';
+                    badge.title = 'A licenca do sistema precisa ser ativada';
+                }
+            }, 600);
         }
 
         // Insert shake keyframes dynamically

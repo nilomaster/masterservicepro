@@ -27,9 +27,10 @@ namespace MasterServicePro
             }
 
             // Validacao de Licenca e Bloqueio Automatico
+            MasterServicePro.Services.LicenseCheckResult licResult = null;
             try
             {
-                var licResult = MasterServicePro.Services.LicenseService.CheckLicenseAsync().GetAwaiter().GetResult();
+                licResult = MasterServicePro.Services.LicenseService.CheckLicenseAsync().GetAwaiter().GetResult();
                 if (!licResult.Success || licResult.Status != "active")
                 {
                     using (var frmLic = new Forms.FrmLicencaWeb(licResult.Chave, licResult.Status == "expired", licResult.VencimentoBr))
@@ -39,6 +40,8 @@ namespace MasterServicePro
                             return; // Encerra o aplicativo se a licenca nao for liberada
                         }
                     }
+                    // Re-check license after activation
+                    licResult = MasterServicePro.Services.LicenseService.CheckLicenseAsync().GetAwaiter().GetResult();
                 }
             }
             catch (Exception ex)
@@ -46,7 +49,7 @@ namespace MasterServicePro
                 MessageBox.Show("Falha ao checar licenca do sistema: " + ex.Message, "Licenciamento", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
 
-            using (var login = new Forms.FrmLoginWeb())
+            using (var login = new Forms.FrmLoginWeb(licResult))
             {
                 if (login.ShowDialog() == DialogResult.OK)
                 {
