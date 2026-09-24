@@ -17,6 +17,7 @@ namespace MasterServicePro.Services
     {
         private static readonly HttpClient httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
         private static string cachedHwid = null;
+        private const string ApiSecretSalt = "MasterDevSolutions_Secret_Key_2026_Salt";
 
         // Base URL of the licensing API
         public static string ApiBaseUrl
@@ -26,8 +27,8 @@ namespace MasterServicePro.Services
                 string url = ConfigurationManager.AppSettings["LicenseApiUrl"];
                 if (string.IsNullOrWhiteSpace(url))
                 {
-                    // Fallback URL for local testing or custom host
-                    return "http://localhost/licenca/api";
+                    // Fallback URL for production host
+                    return "https://masterdevsolutions.com.br/server_api/api";
                 }
                 return url.TrimEnd('/');
             }
@@ -98,6 +99,278 @@ namespace MasterServicePro.Services
             return Path.Combine(dir, "license.key");
         }
 
+        // Local storage path for encrypted offline license cache
+        private static string GetLicenseCacheFilePath()
+        {
+            string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            string dir = Path.Combine(appData, "MasterServicePro");
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+            return Path.Combine(dir, "license.cache");
+        }
+
+        // Computes server-aligned SHA-256 signature for license validation
+        private static string ComputeServerSignature(string chave, string hwid, string vencimento, string status)
+        {
+            string payload = $"{chave}|{hwid}|{vencimento}|{status}|{ApiSecretSalt}";
+            using (SHA256 sha = SHA256.Create())
+            {
+                byte[] bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(payload));
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    sb.Append(bytes[i].ToString("x2"));
+                }
+                return sb.ToString();
+            }
+        }
+
+        // Generates an AES key derived from Hardware ID and secret salt
+        private static byte[] GetAesKey()
+        {
+            using (SHA256 sha = SHA256.Create())
+            {
+                return sha.ComputeHash(Encoding.UTF8.GetBytes(GetHardwareId() + "_" + ApiSecretSalt));
+            }
+        }
+
+        // Encrypts text using AES-256 with key tied to machine HWID
+        private static string EncryptString(string plainText)
+        {
+            if (string.IsNullOrEmpty(plainText)) return string.Empty;
+            byte[] key = GetAesKey();
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = key;
+                aes.GenerateIV();
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    ms.Write(aes.IV, 0, aes.IV.Length);
+                    using (CryptoStream cs = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                    using (StreamWriter sw = new StreamWriter(cs))
+                    {
+                        sw.Write(plainText);
+                    }
+                    return Convert.ToBase64String(ms.ToArray());
+                }
+            }
+        }
+
+        // Decrypts text using AES-256
+        private static string DecryptString(string cipherText)
+        {
+            if (string.IsNullOrEmpty(cipherText)) return string.Empty;
+            try
+            {
+                byte[] cipherBytes = Convert.FromBase64String(cipherText);
+                byte[] key = GetAesKey();
+                using (Aes aes = Aes.Create())
+                {
+                    aes.Key = key;
+                    byte[] iv = new byte[aes.BlockSize / 8];
+                    Array.Copy(cipherBytes, 0, iv, 0, iv.Length);
+                    aes.IV = iv;
+                    using (MemoryStream ms = new MemoryStream(cipherBytes, iv.Length, cipherBytes.Length - iv.Length))
+                    using (CryptoStream cs = new CryptoStream(ms, aes.CreateDecryptor(), CryptoStreamMode.Read))
+                    using (StreamReader sr = new StreamReader(cs))
+                    {
+                        return sr.ReadToEnd();
+                    }
+                }
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        // Saves encrypted license cache to both registry and local file
+        public static void SaveOfflineLicenseCache(CachedLicenseData data)
+        {
+            if (data == null) return;
+            try
+            {
+                string json = JsonConvert.SerializeObject(data);
+                string encrypted = EncryptString(json);
+
+                // Save to Registry
+                try
+                {
+                    using (var regKey = Registry.CurrentUser.CreateSubKey(@"Software\MasterServicePro"))
+                    {
+                        if (regKey != null)
+                        {
+                            regKey.SetValue("LicenseCache", encrypted);
+                        }
+                    }
+                }
+                catch { }
+
+                // Save to file
+                try
+                {
+                    string path = GetLicenseCacheFilePath();
+                    File.WriteAllText(path, encrypted);
+                }
+                catch { }
+            }
+            catch { }
+        }
+
+        // Retrieves encrypted license cache from registry or file
+        private static string GetStoredLicenseCache()
+        {
+            try
+            {
+                // Try registry first
+                using (var key = Registry.CurrentUser.OpenSubKey(@"Software\MasterServicePro"))
+                {
+                    if (key != null)
+                    {
+                        object val = key.GetValue("LicenseCache");
+                        if (val != null && !string.IsNullOrWhiteSpace(val.ToString()))
+                            return val.ToString().Trim();
+                    }
+                }
+
+                // Try file second
+                string path = GetLicenseCacheFilePath();
+                if (File.Exists(path))
+                {
+                    string content = File.ReadAllText(path).Trim();
+                    if (!string.IsNullOrWhiteSpace(content))
+                        return content;
+                }
+            }
+            catch { }
+
+            return string.Empty;
+        }
+
+        // Validates local offline license cache when internet is unavailable
+        public static LicenseCheckResult ValidateOfflineLicense(string licenseKey = null)
+        {
+            if (string.IsNullOrWhiteSpace(licenseKey))
+            {
+                licenseKey = GetStoredLicenseKey();
+            }
+
+            try
+            {
+                string rawEncrypted = GetStoredLicenseCache();
+                if (string.IsNullOrWhiteSpace(rawEncrypted))
+                {
+                    return null;
+                }
+
+                string json = DecryptString(rawEncrypted);
+                if (string.IsNullOrWhiteSpace(json))
+                {
+                    return null;
+                }
+
+                CachedLicenseData cached = JsonConvert.DeserializeObject<CachedLicenseData>(json);
+                if (cached == null)
+                {
+                    return null;
+                }
+
+                // Validate Hardware ID
+                string currentHwid = GetHardwareId();
+                if (!string.Equals(cached.Hwid, currentHwid, StringComparison.OrdinalIgnoreCase))
+                {
+                    return new LicenseCheckResult
+                    {
+                        Success = false,
+                        Status = "hwid_mismatch",
+                        IsOffline = true,
+                        Message = "Esta licenca foi vinculada a outro computador."
+                    };
+                }
+
+                // Validate Key
+                if (!string.IsNullOrWhiteSpace(licenseKey) && !string.Equals(cached.Chave, licenseKey, StringComparison.OrdinalIgnoreCase))
+                {
+                    return null;
+                }
+
+                // Validate digital signature from server
+                string expectedSignature = ComputeServerSignature(cached.Chave, cached.Hwid, cached.Vencimento, "ativa");
+                if (!string.Equals(cached.Signature, expectedSignature, StringComparison.OrdinalIgnoreCase))
+                {
+                    return new LicenseCheckResult
+                    {
+                        Success = false,
+                        Status = "invalid_signature",
+                        IsOffline = true,
+                        Message = "Assinatura digital da licenca offline invalida ou corrompida."
+                    };
+                }
+
+                // Check expiration date
+                if (!DateTime.TryParse(cached.Vencimento, out DateTime vencimentoDate))
+                {
+                    return null;
+                }
+
+                DateTime now = DateTime.Now;
+
+                // Anti-tampering check: clock should not be prior to last verification
+                if (DateTime.TryParse(cached.LastVerified, out DateTime lastVerifiedDate))
+                {
+                    if (now < lastVerifiedDate.AddHours(-24))
+                    {
+                        return new LicenseCheckResult
+                        {
+                            Success = false,
+                            Status = "clock_rollback",
+                            IsOffline = true,
+                            Message = "O relogio do computador foi alterado. Conecte-se a internet para sincronizar."
+                        };
+                    }
+                }
+
+                if (now > vencimentoDate)
+                {
+                    return new LicenseCheckResult
+                    {
+                        Success = true,
+                        Status = "expired",
+                        Cliente = cached.Cliente,
+                        Chave = cached.Chave,
+                        Vencimento = cached.Vencimento,
+                        VencimentoBr = cached.VencimentoBr,
+                        DiasRestantes = 0,
+                        ValorMensalidade = cached.ValorMensalidade,
+                        IsOffline = true,
+                        Message = "Sua licenca expirou em " + cached.VencimentoBr + ". Conecte-se a internet para renovar."
+                    };
+                }
+
+                int diasRestantes = Math.Max(0, (int)(vencimentoDate.Date - now.Date).TotalDays);
+
+                return new LicenseCheckResult
+                {
+                    Success = true,
+                    Status = "active",
+                    Cliente = cached.Cliente,
+                    Chave = cached.Chave,
+                    Vencimento = cached.Vencimento,
+                    VencimentoBr = cached.VencimentoBr,
+                    DiasRestantes = diasRestantes,
+                    ValorMensalidade = cached.ValorMensalidade,
+                    IsOffline = true,
+                    Message = "Licenca ativa (modo offline - sem conexao com a internet)."
+                };
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         // Retrieves the currently saved license key
         public static string GetStoredLicenseKey()
         {
@@ -154,7 +427,7 @@ namespace MasterServicePro.Services
             catch { }
         }
 
-        // Validates license with the remote server
+        // Validates license with the remote server or falls back to offline cache
         public static async Task<LicenseCheckResult> CheckLicenseAsync(string licenseKey = null)
         {
             if (string.IsNullOrWhiteSpace(licenseKey))
@@ -168,7 +441,7 @@ namespace MasterServicePro.Services
                 {
                     Success = false,
                     Status = "missing_key",
-                    Message = "Nenhuma chave de licença encontrada no sistema."
+                    Message = "Nenhuma chave de licenca encontrada no sistema."
                 };
             }
 
@@ -181,27 +454,57 @@ namespace MasterServicePro.Services
                 string json = await response.Content.ReadAsStringAsync();
 
                 JObject data = JObject.Parse(json);
+                bool success = data["success"]?.Value<bool>() ?? false;
                 string status = data["status"]?.ToString() ?? "unknown";
 
-                return new LicenseCheckResult
+                var result = new LicenseCheckResult
                 {
-                    Success = data["success"]?.Value<bool>() ?? false,
+                    Success = success,
                     Status = status,
                     Cliente = data["cliente"]?.ToString() ?? "",
                     Chave = data["chave"]?.ToString() ?? licenseKey,
+                    Vencimento = data["vencimento"]?.ToString() ?? "",
                     VencimentoBr = data["vencimento_br"]?.ToString() ?? "",
                     DiasRestantes = data["dias_restantes"]?.Value<int>() ?? 0,
                     ValorMensalidade = data["valor_mensalidade"]?.Value<decimal>() ?? 80.00m,
-                    Message = data["message"]?.ToString() ?? ""
+                    Message = data["message"]?.ToString() ?? "",
+                    IsOffline = false
                 };
+
+                // Cache active license locally for seamless offline operation
+                if (success && status == "active")
+                {
+                    string signature = data["signature"]?.ToString() ?? "";
+                    SaveOfflineLicenseCache(new CachedLicenseData
+                    {
+                        Chave = result.Chave,
+                        Cliente = result.Cliente,
+                        Hwid = hwid,
+                        Vencimento = result.Vencimento,
+                        VencimentoBr = result.VencimentoBr,
+                        Signature = signature,
+                        LastVerified = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                        ValorMensalidade = result.ValorMensalidade
+                    });
+                }
+
+                return result;
             }
             catch (Exception ex)
             {
+                // Network failure: validate against local encrypted cache
+                var offlineResult = ValidateOfflineLicense(licenseKey);
+                if (offlineResult != null)
+                {
+                    return offlineResult;
+                }
+
                 return new LicenseCheckResult
                 {
                     Success = false,
                     Status = "network_error",
-                    Message = "Não foi possível conectar ao servidor de licenças: " + ex.Message
+                    IsOffline = true,
+                    Message = "Nao foi possivel conectar ao servidor de licencas e nao ha cache offline valido: " + ex.Message
                 };
             }
         }
@@ -283,16 +586,30 @@ namespace MasterServicePro.Services
         }
     }
 
+    public class CachedLicenseData
+    {
+        public string Chave { get; set; }
+        public string Cliente { get; set; }
+        public string Hwid { get; set; }
+        public string Vencimento { get; set; }
+        public string VencimentoBr { get; set; }
+        public string Signature { get; set; }
+        public string LastVerified { get; set; }
+        public decimal ValorMensalidade { get; set; }
+    }
+
     public class LicenseCheckResult
     {
         public bool Success { get; set; }
-        public string Status { get; set; } // active, expired, blocked, not_found, hwid_mismatch, network_error
+        public string Status { get; set; } // active, expired, blocked, not_found, hwid_mismatch, network_error, invalid_signature, clock_rollback
         public string Cliente { get; set; }
         public string Chave { get; set; }
+        public string Vencimento { get; set; }
         public string VencimentoBr { get; set; }
         public int DiasRestantes { get; set; }
         public decimal ValorMensalidade { get; set; }
         public string Message { get; set; }
+        public bool IsOffline { get; set; }
     }
 
     public class PixGenerateResult

@@ -222,7 +222,8 @@ namespace MasterServicePro.Forms
                         {
                             isLicensed = _licResult != null && _licResult.Success && _licResult.Status == "active",
                             cliente = _licResult?.Cliente ?? "",
-                            vencimento = _licResult?.VencimentoBr ?? ""
+                            vencimento = _licResult?.VencimentoBr ?? "",
+                            isOffline = _licResult?.IsOffline ?? false
                         };
                         string jsonLic = JsonConvert.SerializeObject(licData);
                         await webView.CoreWebView2.ExecuteScriptAsync($"setLicenseStatus({jsonLic})");

@@ -447,9 +447,9 @@
                 if (data && data.isLicensed) {
                     badge.className = 'license-badge active';
                     icon.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
-                    text.innerText = 'Sistema Licenciado';
+                    text.innerText = data.isOffline ? 'Sistema Licenciado (Offline)' : 'Sistema Licenciado';
 
-                    let tooltip = 'Sistema devidamente licenciado e ativo';
+                    let tooltip = data.isOffline ? 'Sistema licenciado e autorizado (modo offline)' : 'Sistema devidamente licenciado e ativo';
                     if (data.cliente) tooltip += ' • ' + data.cliente;
                     if (data.vencimento) tooltip += ' • Validade: ' + data.vencimento;
                     badge.title = tooltip;
