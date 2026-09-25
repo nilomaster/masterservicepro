@@ -118,7 +118,7 @@ function renderTable(data) {
     tbody.innerHTML = '';
 
     if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 30px;">Nenhuma O.S. encontrada.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" class="empty-state-cell">Nenhuma O.S. encontrada.</td></tr>';
         return;
     }
 

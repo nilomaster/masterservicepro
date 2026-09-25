@@ -54,13 +54,29 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Problema Relatado (Pelo Cliente)</label>
-                    <textarea id="txtDefeito" rows="3"></textarea>
+                    <div class="field-label-row">
+                        <label for="txtDefeito">Problema Relatado (Pelo Cliente)</label>
+                        <button type="button" class="btn-quick-suggest" id="btnToggleDefeito" title="Abrir lista de problemas rápidos">
+                            📋 Opções Rápidas ▼
+                        </button>
+                    </div>
+                    <div class="field-textarea-wrapper" id="boxDefeito">
+                        <textarea id="txtDefeito" rows="3" placeholder="Digite o problema ou clique em Opções Rápidas..."></textarea>
+                        <div class="suggest-dropdown" id="dropdownDefeito" style="display:none;"></div>
+                    </div>
                 </div>
 
                 <div class="form-group">
-                    <label>Laudo Técnico (Diagnóstico)</label>
-                    <textarea id="txtLaudo" rows="3"></textarea>
+                    <div class="field-label-row">
+                        <label for="txtLaudo">Laudo Técnico (Diagnóstico)</label>
+                        <button type="button" class="btn-quick-suggest" id="btnToggleLaudo" title="Abrir lista de laudos rápidos">
+                            📋 Laudos Rápidos ▼
+                        </button>
+                    </div>
+                    <div class="field-textarea-wrapper" id="boxLaudo">
+                        <textarea id="txtLaudo" rows="3" placeholder="Digite o laudo técnico ou clique em Laudos Rápidos..."></textarea>
+                        <div class="suggest-dropdown" id="dropdownLaudo" style="display:none;"></div>
+                    </div>
                 </div>
 
                 <div class="row totals-row">
@@ -180,6 +196,7 @@
     </div>
 </div>
 
+<script src="textosAutomaticos.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
