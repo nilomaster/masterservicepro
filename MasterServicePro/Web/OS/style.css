@@ -209,6 +209,19 @@ body {
     font-size: 14px;
 }
 
+/* Empty state row styling */
+.empty-state-cell {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 60px 20px !important;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    background: rgba(30, 34, 43, 0.4);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    width: 100%;
+}
+
 .data-table tbody tr {
     cursor: context-menu;
     transition: background-color 0.2s;

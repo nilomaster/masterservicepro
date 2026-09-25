@@ -162,9 +162,223 @@ function updateModelosDatalist(selectedMarca = '') {
     });
 }
 
+// Direct money mask in Reais with auto dots for thousands and comma for cents
+function attachDirectMoneyMask(input, onChangeCallback) {
+    if (!input) return;
+
+    function formatIntegerPart(str) {
+        let clean = (str || "").replace(/\D/g, "");
+        if (!clean) return "0";
+        clean = clean.replace(/^0+/, "") || "0";
+        return clean.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    function getParts(val) {
+        val = (val || "0,00").toString().trim();
+        let commaIdx = val.indexOf(",");
+        if (commaIdx === -1) {
+            let dotIdx = val.lastIndexOf(".");
+            if (dotIdx !== -1 && val.length - dotIdx - 1 <= 2) {
+                let intPart = val.slice(0, dotIdx).replace(/\D/g, "") || "0";
+                let decPart = (val.slice(dotIdx + 1).replace(/\D/g, "") + "00").slice(0, 2);
+                return { intPart, decPart };
+            }
+            return { intPart: val.replace(/\D/g, "") || "0", decPart: "00" };
+        }
+        let intPart = val.slice(0, commaIdx).replace(/\D/g, "") || "0";
+        let decPart = (val.slice(commaIdx + 1).replace(/\D/g, "") + "00").slice(0, 2);
+        return { intPart, decPart };
+    }
+
+    function setValWithCursor(rawInt, dec, targetCursor) {
+        let formattedInt = formatIntegerPart(rawInt);
+        let newVal = formattedInt + "," + dec;
+        input.value = newVal;
+        if (typeof targetCursor === "number") {
+            let safe = Math.max(0, Math.min(newVal.length, targetCursor));
+            if (input.setSelectionRange) input.setSelectionRange(safe, safe);
+        }
+        if (onChangeCallback) onChangeCallback();
+    }
+
+    let isFirstClick = false;
+    input.addEventListener("focus", function () {
+        isFirstClick = true;
+        setTimeout(() => {
+            if (this.select) this.select();
+        }, 10);
+    });
+
+    input.addEventListener("mouseup", function (e) {
+        if (isFirstClick) {
+            e.preventDefault();
+            isFirstClick = false;
+        }
+    });
+
+    input.addEventListener("keydown", function (e) {
+        let key = e.key;
+
+        // Allow navigation and system shortcuts
+        if (
+            e.ctrlKey || e.metaKey || e.altKey ||
+            key === "Tab" || key === "Enter" || key === "Escape" ||
+            key === "ArrowLeft" || key === "ArrowRight" || key === "ArrowUp" || key === "ArrowDown" ||
+            key === "Home" || key === "End"
+        ) {
+            return;
+        }
+
+        let isDigit = /^[0-9]$/.test(key);
+        let isCommaOrDot = key === "," || key === ".";
+        let isBackspace = key === "Backspace";
+        let isDelete = key === "Delete";
+
+        if (!isDigit && !isCommaOrDot && !isBackspace && !isDelete) {
+            e.preventDefault();
+            return;
+        }
+
+        let start = this.selectionStart || 0;
+        let end = this.selectionEnd || 0;
+        let isAllSelected = (start === 0 && end === this.value.length && this.value.length > 0);
+
+        if (isDigit) {
+            e.preventDefault();
+            let commaIdx = this.value.indexOf(",");
+            if (commaIdx === -1) commaIdx = this.value.length;
+
+            if (isAllSelected) {
+                setValWithCursor(key, "00", 1);
+                return;
+            }
+
+            let parts = getParts(this.value);
+
+            if (start > commaIdx) {
+                // Typing into decimals
+                let decPos = start - commaIdx;
+                let d1 = parts.decPart[0] || "0";
+                let d2 = parts.decPart[1] || "0";
+                if (decPos === 1) {
+                    parts.decPart = key + d2;
+                    setValWithCursor(parts.intPart, parts.decPart, commaIdx + 2);
+                } else {
+                    parts.decPart = d1 + key;
+                    setValWithCursor(parts.intPart, parts.decPart, commaIdx + 3);
+                }
+            } else {
+                // Typing into integer part
+                let oldVal = this.value;
+                let textBefore = oldVal.slice(0, start).replace(/\D/g, "");
+                let textAfter = oldVal.slice(start, commaIdx).replace(/\D/g, "");
+                let newRawInt = textBefore + key + textAfter;
+
+                let digitsBeforeNewCursor = textBefore.length + 1;
+                let formattedNewInt = formatIntegerPart(newRawInt);
+
+                let count = 0;
+                let newCursorPos = formattedNewInt.length;
+                for (let i = 0; i < formattedNewInt.length; i++) {
+                    if (/\d/.test(formattedNewInt[i])) count++;
+                    if (count === digitsBeforeNewCursor) {
+                        newCursorPos = i + 1;
+                        break;
+                    }
+                }
+
+                setValWithCursor(newRawInt, parts.decPart, newCursorPos);
+            }
+        } else if (isCommaOrDot) {
+            e.preventDefault();
+            let commaIdx = this.value.indexOf(",");
+            if (commaIdx !== -1 && this.setSelectionRange) {
+                this.setSelectionRange(commaIdx + 1, commaIdx + 1);
+            }
+        } else if (isBackspace) {
+            if (isAllSelected) {
+                e.preventDefault();
+                setValWithCursor("0", "00", 1);
+                if (this.select) this.select();
+                return;
+            }
+
+            let commaIdx = this.value.indexOf(",");
+            let parts = getParts(this.value);
+
+            if (start > commaIdx + 1) {
+                // Inside decimals
+                e.preventDefault();
+                let decPos = start - commaIdx;
+                let d1 = parts.decPart[0] || "0";
+                if (decPos === 3) {
+                    parts.decPart = d1 + "0";
+                    setValWithCursor(parts.intPart, parts.decPart, commaIdx + 2);
+                } else if (decPos === 2) {
+                    parts.decPart = "00";
+                    setValWithCursor(parts.intPart, parts.decPart, commaIdx + 1);
+                }
+            } else if (start === commaIdx + 1) {
+                // Right after comma, jump cursor before comma
+                e.preventDefault();
+                if (this.setSelectionRange) this.setSelectionRange(commaIdx, commaIdx);
+            } else {
+                // In integer part
+                e.preventDefault();
+                let oldVal = this.value;
+                let textBefore = oldVal.slice(0, start).replace(/\D/g, "");
+                let textAfter = oldVal.slice(start, commaIdx).replace(/\D/g, "");
+                if (textBefore.length > 0) {
+                    let newRawInt = textBefore.slice(0, -1) + textAfter;
+                    if (!newRawInt) newRawInt = "0";
+
+                    let digitsBeforeNewCursor = textBefore.length - 1;
+                    let formattedNewInt = formatIntegerPart(newRawInt);
+
+                    let count = 0;
+                    let newCursorPos = 0;
+                    for (let i = 0; i < formattedNewInt.length; i++) {
+                        if (/\d/.test(formattedNewInt[i])) count++;
+                        if (count === digitsBeforeNewCursor) {
+                            newCursorPos = i + 1;
+                            break;
+                        }
+                    }
+                    if (digitsBeforeNewCursor === 0) newCursorPos = Math.min(1, formattedNewInt.length);
+
+                    setValWithCursor(newRawInt, parts.decPart, newCursorPos);
+                }
+            }
+        } else if (isDelete) {
+            if (isAllSelected) {
+                e.preventDefault();
+                setValWithCursor("0", "00", 1);
+                if (this.select) this.select();
+            }
+        }
+    });
+
+    input.addEventListener("paste", function (e) {
+        e.preventDefault();
+        let pasteText = (e.clipboardData || window.clipboardData).getData("text");
+        let parts = getParts(pasteText);
+        setValWithCursor(parts.intPart, parts.decPart, formatIntegerPart(parts.intPart).length);
+    });
+
+    input.addEventListener("blur", function () {
+        let parts = getParts(this.value);
+        let formatted = formatIntegerPart(parts.intPart) + "," + parts.decPart;
+        this.value = formatted;
+        if (onChangeCallback) onChangeCallback();
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('txtValorPecas').addEventListener('input', calculateTotal);
-    document.getElementById('txtValorServico').addEventListener('input', calculateTotal);
+    // Attach direct money masks
+    attachDirectMoneyMask(document.getElementById('txtValorPecas'), calculateTotal);
+    attachDirectMoneyMask(document.getElementById('txtValorServico'), calculateTotal);
+    attachDirectMoneyMask(document.getElementById('modalDiscountValue'), null);
+    attachDirectMoneyMask(document.getElementById('modalCustoValue'), null);
 
     // IMEI constraint: numeric only and max 17 digits
     const txtImei = document.getElementById('txtImei');
@@ -194,6 +408,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (this.showPicker) { try { this.showPicker(); } catch (e) { } }
         });
     }
+
+    // Initialize automatic suggestion dropdowns
+    initTextosAutomaticos();
 });
 
 function sendAction(actionName, data = null) {
@@ -205,10 +422,11 @@ function sendAction(actionName, data = null) {
 function parseMoney(val) {
     if (!val) return 0;
     if (typeof val === 'number') return val;
-    return parseFloat(val.toString().replace('R$', '').replace('.', '').replace(',', '.').trim()) || 0;
+    return parseFloat(val.toString().replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
 }
 
 function formatMoney(val) {
+    if (isNaN(val) || val === null || val === undefined) val = 0;
     return val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
@@ -216,15 +434,7 @@ function calculateTotal() {
     let partsVal = parseMoney(document.getElementById('txtValorPecas').value);
     let serviceVal = parseMoney(document.getElementById('txtValorServico').value);
     
-    let partsSum = partsItems.reduce((acc, item) => acc + (item.SubTotal || 0), 0);
-    
-    // Auto sync parts cost if grid has items
-    if (partsItems.length > 0) {
-        partsVal = partsSum;
-        document.getElementById('txtValorPecas').value = formatMoney(partsVal);
-    }
-    
-    // Calculate total additional costs
+    // Calculate total additional outsourced costs
     let totalCustosAdicionais = partsItems.reduce((acc, item) => acc + (item.CustoAdicional || 0), 0);
     
     let lucro = serviceVal - partsVal - totalCustosAdicionais;
@@ -293,6 +503,8 @@ function loadFormData(dataJson) {
     } else {
         document.getElementById('lblOsId').innerText = "Nova";
         partsItems = [];
+        document.getElementById('txtValorPecas').value = '0,00';
+        document.getElementById('txtValorServico').value = '0,00';
     }
     
     renderParts();
@@ -326,6 +538,10 @@ function renderParts() {
 function addPart(partJson) {
     const part = JSON.parse(partJson);
     partsItems.push(part);
+    if (part.SubTotal && part.SubTotal > 0) {
+        let currentPecas = parseMoney(document.getElementById('txtValorPecas').value);
+        document.getElementById('txtValorPecas').value = formatMoney(currentPecas + part.SubTotal);
+    }
     renderParts();
 }
 
@@ -337,9 +553,14 @@ function applyDiscount(index) {
     
     document.getElementById('modalItemName').innerText = item.NomeProduto;
     document.getElementById('modalCurrentValue').value = formatMoney(item.SubTotal);
-    document.getElementById('modalDiscountValue').value = '0,00';
+    const inputDesc = document.getElementById('modalDiscountValue');
+    inputDesc.value = '0,00';
     
     document.getElementById('discountModal').classList.add('show');
+    setTimeout(() => {
+        inputDesc.focus();
+        if (inputDesc.select) inputDesc.select();
+    }, 50);
 }
 
 function closeDiscountModal() {
@@ -357,6 +578,9 @@ function confirmDiscount() {
     if (!isNaN(discount) && discount >= 0 && discount <= item.SubTotal) {
         item.SubTotal -= discount;
         item.Desconto = (item.Desconto || 0) + discount;
+        let currentPecas = parseMoney(document.getElementById('txtValorPecas').value);
+        let newPecas = Math.max(0, currentPecas - discount);
+        document.getElementById('txtValorPecas').value = formatMoney(newPecas);
         renderParts();
         closeDiscountModal();
     } else if (discount > item.SubTotal) {
@@ -367,8 +591,13 @@ function confirmDiscount() {
 }
 
 function openCustoModal() {
-    document.getElementById('modalCustoValue').value = '0,00';
+    const inputCusto = document.getElementById('modalCustoValue');
+    inputCusto.value = '0,00';
     document.getElementById('custoModal').classList.add('show');
+    setTimeout(() => {
+        inputCusto.focus();
+        if (inputCusto.select) inputCusto.select();
+    }, 50);
 }
 
 function closeCustoModal() {
@@ -398,6 +627,12 @@ function confirmCusto() {
 }
 
 function removePart(index) {
+    let item = partsItems[index];
+    if (item && item.SubTotal > 0) {
+        let currentPecas = parseMoney(document.getElementById('txtValorPecas').value);
+        let newPecas = Math.max(0, currentPecas - item.SubTotal);
+        document.getElementById('txtValorPecas').value = formatMoney(newPecas);
+    }
     partsItems.splice(index, 1);
     renderParts();
 }
@@ -423,4 +658,297 @@ function saveOS() {
     };
     
     sendAction('SAVE_OS', osData);
+}
+
+// Logic for automatic text suggestions for reported problems and technical diagnosis
+let lastAutoSuggestedLaudo = "";
+
+function normalizeTextSearch(text) {
+    if (!text) return "";
+    return text.toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+function escapeHtml(text) {
+    if (!text) return "";
+    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function highlightMatch(fullText, query) {
+    if (!query) return escapeHtml(fullText);
+    const normFull = normalizeTextSearch(fullText);
+    const normQuery = normalizeTextSearch(query);
+    const idx = normFull.indexOf(normQuery);
+    if (idx === -1) return escapeHtml(fullText);
+
+    const before = fullText.slice(0, idx);
+    const match = fullText.slice(idx, idx + query.length);
+    const after = fullText.slice(idx + query.length);
+    return `${escapeHtml(before)}<mark>${escapeHtml(match)}</mark>${escapeHtml(after)}`;
+}
+
+function initTextosAutomaticos() {
+    const btnToggleDefeito = document.getElementById("btnToggleDefeito");
+    const dropdownDefeito = document.getElementById("dropdownDefeito");
+    const txtDefeito = document.getElementById("txtDefeito");
+
+    const btnToggleLaudo = document.getElementById("btnToggleLaudo");
+    const dropdownLaudo = document.getElementById("dropdownLaudo");
+    const txtLaudo = document.getElementById("txtLaudo");
+
+    if (!txtDefeito || !txtLaudo || !dropdownDefeito || !dropdownLaudo) return;
+
+    // Helper to get items grouped by category
+    function getCategorizedItems(filterText = "", searchField = "problema") {
+        const query = normalizeTextSearch(filterText).trim();
+        const groups = {};
+
+        if (typeof TEXTOS_AUTOMATICOS_OS === "undefined" || !Array.isArray(TEXTOS_AUTOMATICOS_OS)) {
+            return groups;
+        }
+
+        TEXTOS_AUTOMATICOS_OS.forEach(item => {
+            const cat = item.categoria || "OUTROS";
+            const matchProb = normalizeTextSearch(item.problema).includes(query);
+            const matchLaudo = normalizeTextSearch(item.laudo).includes(query);
+            const matchCat = normalizeTextSearch(cat).includes(query);
+
+            let isMatch = false;
+            if (!query) {
+                isMatch = true;
+            } else if (searchField === "problema") {
+                isMatch = matchProb || matchCat;
+            } else {
+                isMatch = matchLaudo || matchProb || matchCat;
+            }
+
+            if (isMatch) {
+                if (!groups[cat]) groups[cat] = [];
+                groups[cat].push(item);
+            }
+        });
+
+        return groups;
+    }
+
+    // Render dropdown for Defeito
+    function renderDropdownDefeito(filterText = "", autoFocusSearch = false) {
+        dropdownDefeito.innerHTML = "";
+
+        // Search bar at the top of dropdown
+        const searchBar = document.createElement("div");
+        searchBar.className = "dropdown-search-bar";
+        searchBar.innerHTML = `<input type="text" class="dropdown-filter-input" placeholder="Pesquisar problema... (ou role a lista abaixo)" value="${escapeHtml(filterText)}" autocomplete="off">`;
+        dropdownDefeito.appendChild(searchBar);
+
+        const filterInput = searchBar.querySelector(".dropdown-filter-input");
+
+        // Scroll container for items
+        const scrollContainer = document.createElement("div");
+        scrollContainer.className = "dropdown-items-scroll";
+        dropdownDefeito.appendChild(scrollContainer);
+
+        function fillItems(currentQuery) {
+            scrollContainer.innerHTML = "";
+            const groups = getCategorizedItems(currentQuery, "problema");
+            const categories = Object.keys(groups);
+
+            if (categories.length === 0) {
+                scrollContainer.innerHTML = `<div class="suggest-empty">Nenhum problema encontrado para "${escapeHtml(currentQuery)}"</div>`;
+                return;
+            }
+
+            categories.forEach(cat => {
+                const header = document.createElement("div");
+                header.className = "suggest-category-header";
+                header.textContent = cat;
+                scrollContainer.appendChild(header);
+
+                groups[cat].forEach(item => {
+                    const el = document.createElement("div");
+                    el.className = "suggest-item";
+                    el.innerHTML = highlightMatch(item.problema, currentQuery);
+                    el.addEventListener("mousedown", (e) => {
+                        e.preventDefault();
+                        selectDefeitoItem(item);
+                    });
+                    scrollContainer.appendChild(el);
+                });
+            });
+        }
+
+        fillItems(filterText);
+
+        filterInput.addEventListener("input", (e) => {
+            fillItems(e.target.value);
+        });
+
+        filterInput.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                dropdownDefeito.style.display = "none";
+            }
+        });
+
+        dropdownDefeito.style.display = "flex";
+
+        if (autoFocusSearch) {
+            setTimeout(() => {
+                filterInput.focus();
+                if (filterInput.value) filterInput.select();
+            }, 50);
+        }
+    }
+
+    // Select an item from Defeito dropdown
+    function selectDefeitoItem(item) {
+        txtDefeito.value = item.problema;
+        dropdownDefeito.style.display = "none";
+
+        // Auto suggest corresponding technical report if current laudo is empty or matches previous auto suggestion
+        const currentLaudo = txtLaudo.value.trim();
+        if (!currentLaudo || currentLaudo === lastAutoSuggestedLaudo) {
+            txtLaudo.value = item.laudo;
+            lastAutoSuggestedLaudo = item.laudo;
+        }
+    }
+
+    // Render dropdown for Laudo
+    function renderDropdownLaudo(filterText = "", autoFocusSearch = false) {
+        dropdownLaudo.innerHTML = "";
+
+        // Search bar at the top of dropdown
+        const searchBar = document.createElement("div");
+        searchBar.className = "dropdown-search-bar";
+        searchBar.innerHTML = `<input type="text" class="dropdown-filter-input" placeholder="Pesquisar laudo... (ou role a lista abaixo)" value="${escapeHtml(filterText)}" autocomplete="off">`;
+        dropdownLaudo.appendChild(searchBar);
+
+        const filterInput = searchBar.querySelector(".dropdown-filter-input");
+
+        // Scroll container for items
+        const scrollContainer = document.createElement("div");
+        scrollContainer.className = "dropdown-items-scroll";
+        dropdownLaudo.appendChild(scrollContainer);
+
+        function fillItems(currentQuery) {
+            scrollContainer.innerHTML = "";
+            const groups = getCategorizedItems(currentQuery, "laudo");
+            const categories = Object.keys(groups);
+
+            if (categories.length === 0) {
+                scrollContainer.innerHTML = `<div class="suggest-empty">Nenhum laudo encontrado para "${escapeHtml(currentQuery)}"</div>`;
+                return;
+            }
+
+            categories.forEach(cat => {
+                const header = document.createElement("div");
+                header.className = "suggest-category-header";
+                header.textContent = cat;
+                scrollContainer.appendChild(header);
+
+                groups[cat].forEach(item => {
+                    const el = document.createElement("div");
+                    el.className = "suggest-item";
+                    el.innerHTML = `
+                        <div class="laudo-item-title">${highlightMatch(item.problema, currentQuery)}</div>
+                        <div class="laudo-item-text">${highlightMatch(item.laudo, currentQuery)}</div>
+                    `;
+                    el.addEventListener("mousedown", (e) => {
+                        e.preventDefault();
+                        selectLaudoItem(item);
+                    });
+                    scrollContainer.appendChild(el);
+                });
+            });
+        }
+
+        fillItems(filterText);
+
+        filterInput.addEventListener("input", (e) => {
+            fillItems(e.target.value);
+        });
+
+        filterInput.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                dropdownLaudo.style.display = "none";
+            }
+        });
+
+        dropdownLaudo.style.display = "flex";
+
+        if (autoFocusSearch) {
+            setTimeout(() => {
+                filterInput.focus();
+                if (filterInput.value) filterInput.select();
+            }, 50);
+        }
+    }
+
+    // Select an item from Laudo dropdown
+    function selectLaudoItem(item) {
+        txtLaudo.value = item.laudo;
+        lastAutoSuggestedLaudo = item.laudo;
+        dropdownLaudo.style.display = "none";
+    }
+
+    // Toggle button listeners
+    if (btnToggleDefeito) {
+        btnToggleDefeito.addEventListener("click", () => {
+            dropdownLaudo.style.display = "none";
+            if (dropdownDefeito.style.display === "flex") {
+                dropdownDefeito.style.display = "none";
+            } else {
+                renderDropdownDefeito("", true);
+            }
+        });
+    }
+
+    if (btnToggleLaudo) {
+        btnToggleLaudo.addEventListener("click", () => {
+            dropdownDefeito.style.display = "none";
+            if (dropdownLaudo.style.display === "flex") {
+                dropdownLaudo.style.display = "none";
+            } else {
+                renderDropdownLaudo("", true);
+            }
+        });
+    }
+
+    // Also support typing directly inside txtDefeito
+    txtDefeito.addEventListener("input", () => {
+        const val = txtDefeito.value.trim();
+        if (val.length >= 2) {
+            dropdownLaudo.style.display = "none";
+            renderDropdownDefeito(val, false);
+        } else {
+            dropdownDefeito.style.display = "none";
+        }
+    });
+
+    // Also support typing directly inside txtLaudo
+    txtLaudo.addEventListener("input", () => {
+        const val = txtLaudo.value.trim();
+        if (val.length >= 2) {
+            dropdownDefeito.style.display = "none";
+            renderDropdownLaudo(val, false);
+        } else {
+            dropdownLaudo.style.display = "none";
+        }
+    });
+
+    // Close on outside click
+    document.addEventListener("click", (e) => {
+        if (!e.target.closest("#boxDefeito") && !e.target.closest("#btnToggleDefeito")) {
+            dropdownDefeito.style.display = "none";
+        }
+        if (!e.target.closest("#boxLaudo") && !e.target.closest("#btnToggleLaudo")) {
+            dropdownLaudo.style.display = "none";
+        }
+    });
+
+    // Close on Escape anywhere
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            dropdownDefeito.style.display = "none";
+            dropdownLaudo.style.display = "none";
+        }
+    });
 }
