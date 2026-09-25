@@ -100,6 +100,8 @@ namespace MasterServicePro.Forms
             // When HTML is fully loaded, send data from DB
             var clientes = await clienteRepository.BuscarTodosAsync();
             var tecnicos = await tecnicoRepository.BuscarTodosAsync();
+            var marcasDb = await repository.ObterMarcasDistintasAsync();
+            var modelosDb = await repository.ObterModelosDistintosAsync();
             
             OrdemServico os = null;
             if (osId > 0)
@@ -111,6 +113,8 @@ namespace MasterServicePro.Forms
             {
                 Clientes = clientes,
                 Tecnicos = tecnicos,
+                MarcasDb = marcasDb,
+                ModelosDb = modelosDb,
                 OS = os
             };
 

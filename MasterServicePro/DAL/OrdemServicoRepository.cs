@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
+using System.Threading.Tasks;
 using MasterServicePro.Models;
 using MasterServicePro.Utils;
 
@@ -464,6 +466,64 @@ namespace MasterServicePro.DAL
             query += " ORDER BY OS.DataAtualizacao DESC";
 
             return db.ExecuteQuery(query, list.ToArray());
+        }
+
+        // Retrieve distinct brands from OrdensServico and Produtos
+        public async Task<List<string>> ObterMarcasDistintasAsync()
+        {
+            return await Task.Run(() =>
+            {
+                var marcas = new List<string>();
+                try
+                {
+                    string query = @"
+                        SELECT DISTINCT LTRIM(RTRIM(Marca)) AS Marca FROM OrdensServico WHERE Marca IS NOT NULL AND LTRIM(RTRIM(Marca)) <> ''
+                        UNION
+                        SELECT DISTINCT LTRIM(RTRIM(Marca)) AS Marca FROM Produtos WHERE Marca IS NOT NULL AND LTRIM(RTRIM(Marca)) <> ''
+                        ORDER BY Marca";
+                    DataTable dt = db.ExecuteQuery(query);
+                    if (dt != null)
+                    {
+                        foreach (DataRow row in dt.Rows)
+                        {
+                            string m = row["Marca"]?.ToString()?.Trim();
+                            if (!string.IsNullOrEmpty(m) && !marcas.Contains(m))
+                                marcas.Add(m);
+                        }
+                    }
+                }
+                catch { }
+                return marcas;
+            });
+        }
+
+        // Retrieve distinct models from OrdensServico and Produtos
+        public async Task<List<string>> ObterModelosDistintosAsync()
+        {
+            return await Task.Run(() =>
+            {
+                var modelos = new List<string>();
+                try
+                {
+                    string query = @"
+                        SELECT DISTINCT LTRIM(RTRIM(Modelo)) AS Modelo FROM OrdensServico WHERE Modelo IS NOT NULL AND LTRIM(RTRIM(Modelo)) <> ''
+                        UNION
+                        SELECT DISTINCT LTRIM(RTRIM(Modelo)) AS Modelo FROM Produtos WHERE Modelo IS NOT NULL AND LTRIM(RTRIM(Modelo)) <> ''
+                        ORDER BY Modelo";
+                    DataTable dt = db.ExecuteQuery(query);
+                    if (dt != null)
+                    {
+                        foreach (DataRow row in dt.Rows)
+                        {
+                            string m = row["Modelo"]?.ToString()?.Trim();
+                            if (!string.IsNullOrEmpty(m) && !modelos.Contains(m))
+                                modelos.Add(m);
+                        }
+                    }
+                }
+                catch { }
+                return modelos;
+            });
         }
     }
 }

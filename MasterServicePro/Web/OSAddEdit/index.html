@@ -32,22 +32,24 @@
                 <div class="row">
                     <div class="form-group half">
                         <label>Marca/Aparelho</label>
-                        <input type="text" id="txtMarca">
+                        <input type="text" id="txtMarca" list="marcasList" placeholder="Selecione ou digite a marca..." autocomplete="off">
+                        <datalist id="marcasList"></datalist>
                     </div>
                     <div class="form-group half">
                         <label>Modelo</label>
-                        <input type="text" id="txtModelo">
+                        <input type="text" id="txtModelo" list="modelosList" placeholder="Selecione ou digite o modelo..." autocomplete="off">
+                        <datalist id="modelosList"></datalist>
                     </div>
                 </div>
 
                 <div class="row">
                     <div class="form-group half">
-                        <label>IMEI / S.N.</label>
-                        <input type="text" id="txtImei">
+                        <label>IMEI / S.N. (max 17 digitos)</label>
+                        <input type="text" id="txtImei" maxlength="17" placeholder="Apenas numeros (max 17)" autocomplete="off">
                     </div>
                     <div class="form-group half">
                         <label>Cor</label>
-                        <input type="text" id="txtCor">
+                        <input type="text" id="txtCor" placeholder="Ex: Preto, Azul, Branco..." autocomplete="off">
                     </div>
                 </div>
 
