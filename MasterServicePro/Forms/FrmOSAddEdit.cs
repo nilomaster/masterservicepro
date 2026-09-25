@@ -148,8 +148,17 @@ namespace MasterServicePro.Forms
             dgvItens.DataSource = itensOs;
             FormatGridItens();
 
+            // Configure IMEI max length to 17 digits and numbers only
+            txtImei.MaxLength = 17;
+            txtImei.KeyPress += (s, ev) =>
+            {
+                if (!char.IsControl(ev.KeyChar) && !char.IsDigit(ev.KeyChar))
+                    ev.Handled = true;
+            };
+
             await LoadClientesAsync();
             await LoadTecnicosAsync();
+            await LoadMarcasEModelosAsync();
             
             if (osId > 0)
             {
@@ -201,6 +210,43 @@ namespace MasterServicePro.Forms
             cboTecnico.DisplayMember = "Nome";
             cboTecnico.ValueMember = "Id";
             cboTecnico.SelectedIndex = 0;
+        }
+
+        private async System.Threading.Tasks.Task LoadMarcasEModelosAsync()
+        {
+            try
+            {
+                var marcasDb = await repository.ObterMarcasDistintasAsync();
+                var autoMarcas = new AutoCompleteStringCollection();
+                string[] marcasPadrao = { "Apple", "Samsung", "Motorola", "Xiaomi", "Realme", "LG", "Asus", "Infinix", "Huawei", "Positivo", "Multilaser", "Philco", "TCL", "Nokia", "Sony", "Google" };
+                autoMarcas.AddRange(marcasPadrao);
+                if (marcasDb != null)
+                {
+                    foreach (var m in marcasDb)
+                    {
+                        if (!string.IsNullOrEmpty(m) && !autoMarcas.Contains(m))
+                            autoMarcas.Add(m);
+                    }
+                }
+                txtMarca.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+                txtMarca.AutoCompleteSource = AutoCompleteSource.CustomSource;
+                txtMarca.AutoCompleteCustomSource = autoMarcas;
+
+                var modelosDb = await repository.ObterModelosDistintosAsync();
+                var autoModelos = new AutoCompleteStringCollection();
+                if (modelosDb != null)
+                {
+                    foreach (var mod in modelosDb)
+                    {
+                        if (!string.IsNullOrEmpty(mod) && !autoModelos.Contains(mod))
+                            autoModelos.Add(mod);
+                    }
+                }
+                txtModelo.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+                txtModelo.AutoCompleteSource = AutoCompleteSource.CustomSource;
+                txtModelo.AutoCompleteCustomSource = autoModelos;
+            }
+            catch { }
         }
 
         private void LoadOS()
