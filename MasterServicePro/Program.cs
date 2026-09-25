@@ -31,9 +31,19 @@ namespace MasterServicePro
             try
             {
                 licResult = MasterServicePro.Services.LicenseService.CheckLicenseAsync().GetAwaiter().GetResult();
-                if (!licResult.Success || licResult.Status != "active")
+                if (licResult == null || !licResult.Success || licResult.Status != "active")
                 {
-                    using (var frmLic = new Forms.FrmLicencaWeb(licResult.Chave, licResult.Status == "expired", licResult.VencimentoBr))
+                    if (licResult != null && licResult.Status == "network_error")
+                    {
+                        MessageBox.Show(
+                            "O sistema esta sem conexao com a internet e nao ha uma ativacao previa salva neste computador.\n\nPor favor, conecte-se a internet para validar a licenca.",
+                            "Sem Conexao com a Internet",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Warning
+                        );
+                    }
+
+                    using (var frmLic = new Forms.FrmLicencaWeb(licResult?.Chave ?? "", licResult != null && licResult.Status == "expired", licResult?.VencimentoBr ?? ""))
                     {
                         if (frmLic.ShowDialog() != DialogResult.OK)
                         {

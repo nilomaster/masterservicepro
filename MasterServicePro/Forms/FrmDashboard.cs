@@ -70,7 +70,21 @@ namespace MasterServicePro.Forms
             try
             {
                 var licResult = await MasterServicePro.Services.LicenseService.CheckLicenseAsync();
-                if (licResult != null && (!licResult.Success || licResult.Status != "active"))
+                
+                // If network connection failed or temporary drop, do not interrupt the user
+                if (licResult == null || licResult.Status == "network_error")
+                {
+                    return;
+                }
+
+                // If active (online or offline cached), continue normal operation
+                if (licResult.Success && licResult.Status == "active")
+                {
+                    return;
+                }
+
+                // Only block if license is definitively expired, blocked or invalid
+                if (licResult.Status == "expired" || licResult.Status == "blocked" || licResult.Status == "hwid_mismatch" || licResult.Status == "not_found")
                 {
                     tmrLicenseCheck.Stop();
                     using (var frmLic = new Forms.FrmLicencaWeb(licResult.Chave, licResult.Status == "expired", licResult.VencimentoBr))
